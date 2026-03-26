@@ -10,6 +10,10 @@ const Analysis = ({ isDark, toggleTheme, user }) => {
   const [data, setData] = useState(null);
 
   useEffect(() => {
+    if (!testId) {
+      navigate('/');
+      return;
+    }
     const fetchAnalysis = async () => {
       try {
         const res = await apiFetch(`/api/tests/${testId}/analysis`);

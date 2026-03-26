@@ -8,12 +8,14 @@ import {
   Eye, 
   Sun, 
   Moon, 
-  LogOut, 
   User as UserIcon,
   MessageSquare,
   Send
 } from 'lucide-react';
 import { apiFetch } from '../lib/api';
+import MyNotes from '../components/MyNotes';
+import TeamMembers from '../components/TeamMembers';
+import MyFiles from '../components/MyFiles';
 
 const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
   const navigate = useNavigate();
@@ -31,12 +33,6 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
     fetchHistory();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-    navigate('/login');
-  };
 
   const fetchHistory = async () => {
     try {
@@ -98,13 +94,6 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
           >
             {isDark ? <Sun className="w-6 h-6 text-yellow-500" /> : <Moon className="w-6 h-6 text-gray-600" />}
           </button>
-          <button 
-            onClick={handleLogout}
-            className="p-2.5 rounded-xl bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all border border-transparent hover:border-red-200"
-            title="Logout"
-          >
-            <LogOut className="w-6 h-6" />
-          </button>
         </div>
       </header>
 
@@ -142,22 +131,46 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Average Score</p>
               <p className="text-2xl font-semibold">{stats.avgScore}</p>
             </div>
+            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <BarChart3 className="h-6 w-6" />
+            </div>
           </div>
         </div>
-        <div className="bg-panel rounded-xl shadow-sm p-6 border border-main">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
-              <Clock className="h-6 w-6" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Time Spent</p>
+
+        <div className="bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl p-6 text-white shadow-lg shadow-violet-500/30">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-violet-100 text-sm font-medium mb-1 drop-shadow-sm">Time Spent</p>
               <p className="text-2xl font-semibold">{stats.totalTime}</p>
+            </div>
+            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <Clock className="h-6 w-6" />
             </div>
           </div>
         </div>
       </div>
-      
-      <div className="bg-panel rounded-xl shadow-sm border border-main overflow-hidden">
+
+      <div className="space-y-8 mb-8">
+        {/* Row 1: Files and Team */}
+        {user ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <MyFiles uid={user.uid} />
+            <TeamMembers uid={user.uid} />
+          </div>
+        ) : (
+          <div className="h-40 flex items-center justify-center border border-dashed border-main rounded-xl">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        )}
+
+        {/* Row 2: Notes Layer */}
+        <div>
+          {user && <MyNotes uid={user.uid} />}
+        </div>
+
+        {/* Row 3: History & Feedback */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 bg-panel rounded-xl shadow-sm border border-main overflow-hidden h-fit">
         <div className="px-6 py-5 border-b border-main flex justify-between items-center">
           <h3 className="text-xl font-semibold">Recent Test History</h3>
         </div>
@@ -181,7 +194,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
                       {new Date(test.started_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 font-semibold text-blue-600 dark:text-blue-400">
-                      {test.total_score.toFixed(1)}
+                      {(test.total_score || 0).toFixed(1)}
                     </td>
                     <td className="px-6 py-4">
                       {test.completed_at ? (
@@ -212,75 +225,95 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
             </div>
           )}
         </div>
-      </div>
-      {/* Feedback Section */}
-      <div className="mt-8 bg-blue-600 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
-        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          <div>
-            <h3 className="text-2xl font-black mb-4 flex items-center">
-              <MessageSquare className="mr-3 h-8 w-8" />
-              Feedback & Comments
-            </h3>
-            <p className="text-blue-100 font-medium mb-6">
-              Have any suggestions or found a bug? Your feedback helps us make the NIMCET Mock Engine better for everyone.
-            </p>
-            <div className="flex items-center space-x-2 text-sm text-blue-100">
-              <span className="font-bold">Admin Email:</span>
-              <span className="opacity-80">adityastudy003@gmail.com</span>
-            </div>
           </div>
-          
-          <form 
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setSubmittingFeedback(true);
-              try {
-                const res = await apiFetch('/api/feedback', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ ...feedback, email: user.email })
-                });
-                if (res.ok) {
-                  alert("Feedback sent successfully to adityastudy003@gmail.com!");
-                  setFeedback({ subject: '', comment: '' });
-                } else {
-                  alert("Failed to send feedback");
-                }
-              } catch (err) {
-                alert("Error: " + err.message);
-              } finally {
-                setSubmittingFeedback(false);
-              }
-            }}
-            className="space-y-4"
-          >
-            <input 
-              type="text" 
-              placeholder="Subject"
-              required
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white outline-none placeholder:text-blue-200"
-              value={feedback.subject}
-              onChange={(e) => setFeedback({...feedback, subject: e.target.value})}
-            />
-            <textarea 
-              placeholder="Your Comment / Feedback"
-              required
-              rows="3"
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white outline-none placeholder:text-blue-200"
-              value={feedback.comment}
-              onChange={(e) => setFeedback({...feedback, comment: e.target.value})}
-            ></textarea>
+        <div className="space-y-6">
+          <div className="bg-panel rounded-xl shadow-sm border border-main p-6 text-center">
+            <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-500">
+              <PlayCircle className="w-8 h-8" />
+            </div>
+            <h3 className="text-lg font-bold mb-2">Ready for a challenge?</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              Generate a new mock test based on the latest NIMCET syllabus and pattern.
+            </p>
             <button 
-              type="submit"
-              disabled={submittingFeedback}
-              className="w-full bg-white text-blue-600 font-black py-4 rounded-xl hover:bg-blue-50 transition transform active:scale-95 flex items-center justify-center"
+              onClick={startTest}
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition shadow-lg shadow-blue-500/30 flex items-center justify-center disabled:opacity-50"
             >
-              <Send className="mr-2 h-5 w-5" />
-              {submittingFeedback ? "Sending..." : "Submit Feedback"}
+              <PlayCircle className="mr-2 h-5 w-5" />
+              {loading ? "Generating..." : "Start New Test"}
             </button>
-          </form>
+          </div>
+
+          <div className="bg-panel rounded-xl shadow-sm border border-main overflow-hidden">
+            <div className="p-6 border-b border-main bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800">
+              <h3 className="text-lg font-bold flex items-center text-blue-800 dark:text-blue-300">
+                <MessageSquare className="w-5 h-5 mr-2" />
+                Feedback & Support
+              </h3>
+            </div>
+            
+            <form 
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setSubmittingFeedback(true);
+                try {
+                  const res = await apiFetch('/api/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...feedback, email: user?.email })
+                  });
+                  if (res.ok) {
+                    alert('Feedback submitted successfully! Thank you.');
+                    setFeedback({ subject: '', comment: '' });
+                  } else {
+                    alert('Failed to submit feedback.');
+                  }
+                } catch (err) {
+                  console.error(err);
+                  alert('Error submitting feedback.');
+                }
+                setSubmittingFeedback(false);
+              }}
+              className="p-6 space-y-4"
+            >
+              <div>
+                <label className="block text-sm font-medium mb-1">Subject</label>
+                <input 
+                  type="text" 
+                  required
+                  className="w-full px-4 py-2 border border-main rounded-lg bg-panel focus:ring-2 focus:ring-blue-500 outline-none transition text-sm"
+                  value={feedback.subject}
+                  onChange={(e) => setFeedback({...feedback, subject: e.target.value})}
+                  placeholder="Bug, Suggestion, Question..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Message</label>
+                <textarea 
+                  required
+                  rows="3"
+                  className="w-full px-4 py-2 border border-main rounded-lg bg-panel focus:ring-2 focus:ring-blue-500 outline-none transition text-sm resize-none"
+                  value={feedback.comment}
+                  onChange={(e) => setFeedback({...feedback, comment: e.target.value})}
+                  placeholder="How can we improve?"
+                ></textarea>
+              </div>
+              <button 
+                type="submit"
+                disabled={submittingFeedback}
+                className="w-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-main font-medium py-2.5 rounded-lg transition border border-gray-200 dark:border-gray-700 flex items-center justify-center"
+              >
+                {submittingFeedback ? 'Submitting...' : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" /> Send Feedback
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
         </div>
+      </div>
       </div>
     </div>
     </div>

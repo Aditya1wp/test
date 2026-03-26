@@ -23,6 +23,10 @@ const ExamInterface = ({ isDark, toggleTheme, user }) => {
   const [flags, setFlags] = useState({}); // { q_id: true }
 
   useEffect(() => {
+    if (!testId) {
+      navigate('/');
+      return;
+    }
     const savedSession = localStorage.getItem(`nimcet_session_${testId}`);
     if (savedSession) {
       const session = JSON.parse(savedSession);
@@ -38,8 +42,12 @@ const ExamInterface = ({ isDark, toggleTheme, user }) => {
     apiFetch(`/api/tests/${testId}`)
       .then(res => res.json())
       .then(data => {
-        setQuestions(data.questions);
+        setQuestions(data.questions || []);
         if (!savedSession) setLoading(false);
+      })
+      .catch(err => {
+        console.error("Fetch test error:", err);
+        setLoading(false);
       });
   }, [testId, navigate]);
 

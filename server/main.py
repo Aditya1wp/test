@@ -5,30 +5,9 @@ from sqlalchemy.sql import func
 from typing import List
 from pydantic import BaseModel
 import asyncio
-
 import models, database
 from services import ai
-from passlib.context import CryptContext
-import jwt
-from datetime import timedelta
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = "your-secret-key-change-this"
-ALGORITHM = "HS256"
-
-# Pydantic schema for Auth
-class SignupRequest(BaseModel):
-    name: str
-    email: str
-    mobile: str
-    state: str
-    study_place: str
-    exam_year: int
-    password: str
-
-class LoginRequest(BaseModel):
-    email_or_mobile: str
-    password: str
 
 class FeedbackRequest(BaseModel):
     subject: str
@@ -42,17 +21,23 @@ def get_db():
     finally:
         db.close()
 
-def get_current_user(db: Session = Depends(get_db), token: str = None):
-    # This is a simplified auth check for the mock engine
-    if not token:
-        # Check header or just return a default for now if not implemented in frontend headers yet
-        return None
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("user_id")
-        return db.query(models.User).filter(models.User.id == user_id).first()
-    except:
-        return None
+def get_current_user(db: Session = Depends(get_db)):
+    # Hardcoded Guest User for a system without Auth
+    user = db.query(models.User).filter(models.User.email == "guest@nimcet.in").first()
+    if not user:
+        user = models.User(
+            name="Guest Aspirant",
+            email="guest@nimcet.in",
+            mobile="0000000000",
+            state="N/A",
+            study_place="N/A",
+            exam_year=2024,
+            hashed_password=""
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    return user
 
 # Create the database tables
 models.Base.metadata.create_all(bind=database.engine)
@@ -76,71 +61,14 @@ class AnswerSubmit(BaseModel):
 class TestSubmit(BaseModel):
     answers: List[AnswerSubmit]
 
-# Auth Endpoints
-@app.post("/api/auth/signup")
-def signup(req: SignupRequest, db: Session = Depends(get_db)):
-    # Check if user exists
-    existing = db.query(models.User).filter(
-        (models.User.email == req.email) | (models.User.mobile == req.mobile)
-    ).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Email or Mobile already registered")
-    
-    hashed = pwd_context.hash(req.password)
-    new_user = models.User(
-        name=req.name,
-        email=req.email,
-        mobile=req.mobile,
-        state=req.state,
-        study_place=req.study_place,
-        exam_year=req.exam_year,
-        hashed_password=hashed
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    # Generate token
-    token = jwt.encode({"user_id": new_user.id}, SECRET_KEY, algorithm=ALGORITHM)
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "user": {
-            "id": new_user.id,
-            "name": new_user.name,
-            "email": new_user.email
-        }
-    }
 
-@app.post("/api/auth/login")
-def login(req: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(
-        (models.User.email == req.email_or_mobile) | (models.User.mobile == req.email_or_mobile)
-    ).first()
-    if not user or not pwd_context.verify(req.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-    token = jwt.encode({"user_id": user.id}, SECRET_KEY, algorithm=ALGORITHM)
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "user": {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email
-        }
-    }
 
 @app.post("/api/tests/generate")
-async def generate_test(db: Session = Depends(get_db)):
-    # Simple workaround for mock: find the last registered user if not specified
-    user = db.query(models.User).order_by(models.User.id.desc()).first()
-    if not user:
-        user = models.User(name="mockuser", email="mock@nimcet.in", mobile="0000000000", hashed_password="pwd")
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+async def generate_test(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
 
-    test_result = models.TestResult(user_id=user.id)
+    test_result = models.TestResult(user_id=current_user.id)
     db.add(test_result)
     db.commit()
     db.refresh(test_result)
@@ -260,9 +188,11 @@ def submit_test(test_id: int, submission: TestSubmit, db: Session = Depends(data
     return {"message": "Test evaluated", "total_score": test.total_score}
 
 @app.get("/api/history")
-def get_history(db: Session = Depends(database.get_db)):
-    """Fetch all test results for the user (mock user id 1)."""
-    results = db.query(models.TestResult).filter(models.TestResult.user_id == 1).order_by(models.TestResult.started_at.desc()).all()
+def get_history(db: Session = Depends(database.get_db), current_user: models.User = Depends(get_current_user)):
+    """Fetch all test results for the authenticated user."""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    results = db.query(models.TestResult).filter(models.TestResult.user_id == current_user.id).order_by(models.TestResult.started_at.desc()).all()
     history = []
     for r in results:
         history.append({
