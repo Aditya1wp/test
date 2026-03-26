@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import ExamInterface from './pages/ExamInterface';
 import Analysis from './pages/Analysis';
+import InstallPrompt from './components/InstallPrompt';
 import { auth } from './lib/firebase';
 import { signInAnonymously } from 'firebase/auth';
 
@@ -80,6 +81,7 @@ function App() {
             <Route path="/analysis/:testId" element={<Analysis isDark={isDark} toggleTheme={toggleTheme} user={user} />} />
           </Routes>
         </ErrorBoundary>
+        <InstallPrompt />
       </div>
     </BrowserRouter>
   );
