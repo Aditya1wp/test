@@ -1,0 +1,290 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  PlayCircle, 
+  BarChart3, 
+  Clock, 
+  CheckCircle, 
+  Eye, 
+  Sun, 
+  Moon, 
+  LogOut, 
+  User as UserIcon,
+  MessageSquare,
+  Send
+} from 'lucide-react';
+import { apiFetch } from '../lib/api';
+
+const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [feedback, setFeedback] = useState({ subject: '', comment: '' });
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [stats, setStats] = useState({
+    completed: 0,
+    avgScore: 0,
+    totalTime: "0h 0m"
+  });
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    navigate('/login');
+  };
+
+  const fetchHistory = async () => {
+    try {
+      const res = await apiFetch('/api/history');
+      const data = await res.json();
+      setHistory(data);
+      
+      if (data.length > 0) {
+        const completed = data.filter(t => t.completed_at).length;
+        const totalScore = data.reduce((acc, t) => acc + (t.total_score || 0), 0);
+        const avgScore = (totalScore / data.length).toFixed(1);
+        
+        setStats({
+          completed,
+          avgScore,
+          totalTime: `${Math.floor(data.length * 1.5)}h 0m` // Mocked aggregate time for now
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching history:", err);
+    }
+  };
+
+  const startTest = async () => {
+    setLoading(true);
+    try {
+      const res = await apiFetch('/api/tests/generate', { method: 'POST' });
+      const data = await res.json();
+      if (data.test_id) {
+        navigate('/test', { state: { testId: data.test_id } });
+      } else {
+        alert("Failed to create test: " + JSON.stringify(data));
+      }
+    } catch (err) {
+      alert("Error starting test: " + err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-panel transition-colors duration-300">
+      <header className="border-b border-main p-4 flex justify-between items-center sticky top-0 bg-panel z-50 shadow-sm">
+        <div className="flex items-center space-x-2">
+          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">N</div>
+          <div className="text-xl font-black tracking-tight">NIMCET <span className="text-blue-600">MOCK</span></div>
+        </div>
+        <div className="flex items-center space-x-3">
+          {user && (
+            <div className="hidden md:block text-right mr-2">
+              <div className="text-xs font-bold opacity-60 uppercase tracking-widest">Aspirant</div>
+              <div className="text-sm font-black">{user.name}</div>
+            </div>
+          )}
+          <button 
+            onClick={toggleTheme}
+            className="p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all border border-transparent hover:border-main"
+            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {isDark ? <Sun className="w-6 h-6 text-yellow-500" /> : <Moon className="w-6 h-6 text-gray-600" />}
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="p-2.5 rounded-xl bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all border border-transparent hover:border-red-200"
+            title="Logout"
+          >
+            <LogOut className="w-6 h-6" />
+          </button>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">NIMCET Mock Dashboard</h1>
+        <button 
+          onClick={startTest}
+          disabled={loading}
+          className={`${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white font-semibold py-2 px-6 rounded-lg flex items-center shadow-lg transition duration-200`}
+        >
+          <PlayCircle className="mr-2 h-5 w-5" />
+          {loading ? "Generating..." : "Start New Test"}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-panel rounded-xl shadow-sm p-6 border border-main">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+              <CheckCircle className="h-6 w-6" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Tests Completed</p>
+              <p className="text-2xl font-semibold">{stats.completed}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-panel rounded-xl shadow-sm p-6 border border-main">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+              <BarChart3 className="h-6 w-6" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Average Score</p>
+              <p className="text-2xl font-semibold">{stats.avgScore}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-panel rounded-xl shadow-sm p-6 border border-main">
+          <div className="flex items-center">
+            <div className="p-3 rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+              <Clock className="h-6 w-6" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Time Spent</p>
+              <p className="text-2xl font-semibold">{stats.totalTime}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="bg-panel rounded-xl shadow-sm border border-main overflow-hidden">
+        <div className="px-6 py-5 border-b border-main flex justify-between items-center">
+          <h3 className="text-xl font-semibold">Recent Test History</h3>
+        </div>
+        <div className="overflow-x-auto">
+          {history.length > 0 ? (
+            <table className="w-full text-left">
+              <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-main">
+                <tr>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Test ID</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Date</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Score</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Status</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-main">
+                {history.map((test) => (
+                  <tr key={test.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                    <td className="px-6 py-4 font-medium">#{test.id}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                      {new Date(test.started_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-blue-600 dark:text-blue-400">
+                      {test.total_score.toFixed(1)}
+                    </td>
+                    <td className="px-6 py-4">
+                      {test.completed_at ? (
+                        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full">
+                          Completed
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-full">
+                          In Progress
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button 
+                        onClick={() => navigate(`/analysis/${test.id}`)}
+                        className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium flex items-center justify-end ml-auto"
+                      >
+                        <Eye className="w-4 h-4 mr-1" /> View Analysis
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="p-12 text-center text-gray-500 dark:text-gray-400">
+              No tests taken yet. Click 'Start New Test' to begin your NIMCET preparation.
+            </div>
+          )}
+        </div>
+      </div>
+      {/* Feedback Section */}
+      <div className="mt-8 bg-blue-600 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div>
+            <h3 className="text-2xl font-black mb-4 flex items-center">
+              <MessageSquare className="mr-3 h-8 w-8" />
+              Feedback & Comments
+            </h3>
+            <p className="text-blue-100 font-medium mb-6">
+              Have any suggestions or found a bug? Your feedback helps us make the NIMCET Mock Engine better for everyone.
+            </p>
+            <div className="flex items-center space-x-2 text-sm text-blue-100">
+              <span className="font-bold">Admin Email:</span>
+              <span className="opacity-80">adityastudy003@gmail.com</span>
+            </div>
+          </div>
+          
+          <form 
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setSubmittingFeedback(true);
+              try {
+                const res = await apiFetch('/api/feedback', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ ...feedback, email: user.email })
+                });
+                if (res.ok) {
+                  alert("Feedback sent successfully to adityastudy003@gmail.com!");
+                  setFeedback({ subject: '', comment: '' });
+                } else {
+                  alert("Failed to send feedback");
+                }
+              } catch (err) {
+                alert("Error: " + err.message);
+              } finally {
+                setSubmittingFeedback(false);
+              }
+            }}
+            className="space-y-4"
+          >
+            <input 
+              type="text" 
+              placeholder="Subject"
+              required
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white outline-none placeholder:text-blue-200"
+              value={feedback.subject}
+              onChange={(e) => setFeedback({...feedback, subject: e.target.value})}
+            />
+            <textarea 
+              placeholder="Your Comment / Feedback"
+              required
+              rows="3"
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-white outline-none placeholder:text-blue-200"
+              value={feedback.comment}
+              onChange={(e) => setFeedback({...feedback, comment: e.target.value})}
+            ></textarea>
+            <button 
+              type="submit"
+              disabled={submittingFeedback}
+              className="w-full bg-white text-blue-600 font-black py-4 rounded-xl hover:bg-blue-50 transition transform active:scale-95 flex items-center justify-center"
+            >
+              <Send className="mr-2 h-5 w-5" />
+              {submittingFeedback ? "Sending..." : "Submit Feedback"}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    </div>
+  );
+};
+
+export default Dashboard;

@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme {
+  --color-exam-bg: #f3f4f6;
+  --color-exam-panel: #ffffff;
+  --color-exam-primary: #2563eb;
+  --color-exam-secondary: #475569;
+  --color-exam-success: #22c55e;
+  --color-exam-danger: #ef4444;
+  --color-exam-warn: #eab308;
+  
+  /* Dark mode variants */
+  --color-dark-bg: #111827;
+  --color-dark-panel: #1f2937;
+  --color-dark-text: #f9fafb;
+  --color-dark-border: #374151;
+}
+
+:root {
+  --app-bg: #f3f4f6;
+  --app-text: #111827;
+  --panel-bg: #ffffff;
+  --border-color: #e5e7eb;
+}
+
+:root.dark {
+  --app-bg: #111827;
+  --app-text: #f9fafb;
+  --panel-bg: #1f2937;
+  --border-color: #374151;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.bg-panel {
+  background-color: var(--panel-bg);
+}
+
+.text-main {
+  color: var(--app-text);
+}
+
+.border-main {
+  border-color: var(--border-color);
+}
+
+/* Custom Scrollbar for the exam panel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; 
+}
