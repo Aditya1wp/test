@@ -16,6 +16,7 @@ import { apiFetch } from '../lib/api';
 import MyNotes from '../components/MyNotes';
 import TeamMembers from '../components/TeamMembers';
 import MyFiles from '../components/MyFiles';
+import ProfileMenu from '../components/ProfileMenu';
 
 const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
   const navigate = useNavigate();
@@ -84,7 +85,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
           {user && (
             <div className="hidden md:block text-right mr-2">
               <div className="text-xs font-bold opacity-60 uppercase tracking-widest">Aspirant</div>
-              <div className="text-sm font-black">{user.name}</div>
+              <div className="text-sm font-black">{user.displayName || user.email}</div>
             </div>
           )}
           <button 
@@ -94,6 +95,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
           >
             {isDark ? <Sun className="w-6 h-6 text-yellow-500" /> : <Moon className="w-6 h-6 text-gray-600" />}
           </button>
+          {user ? <ProfileMenu user={user} setUser={setUser} /> : null}
         </div>
       </header>
 

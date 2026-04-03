@@ -119,6 +119,7 @@ function App() {
                     isDark={isDark}
                     toggleTheme={toggleTheme}
                     user={user}
+                    setUser={setUser}
                   />
                 ) : (
                   <Navigate to="/login" />

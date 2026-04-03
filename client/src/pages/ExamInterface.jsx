@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Clock, ChevronRight, ChevronLeft, Flag, CheckCircle, Sun, Moon } from 'lucide-react';
 import { apiFetch } from '../lib/api';
+import ProfileMenu from '../components/ProfileMenu';
 
 const SECTIONS = [
   { id: 'Mathematics', title: 'Mathematics', duration: 70 * 60 },
@@ -9,7 +10,7 @@ const SECTIONS = [
   { id: 'Computer', title: 'Computer Awareness & English', duration: 20 * 60 }
 ];
 
-const ExamInterface = ({ isDark, toggleTheme, user }) => {
+const ExamInterface = ({ isDark, toggleTheme, user, setUser }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const testId = location.state?.testId;
@@ -159,6 +160,7 @@ const ExamInterface = ({ isDark, toggleTheme, user }) => {
           >
             {isDark ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-gray-600" />}
           </button>
+          {user ? <ProfileMenu user={user} setUser={setUser} /> : null}
           
           <div className="text-right flex items-center bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-lg">
             <div className="mr-3 text-right">
