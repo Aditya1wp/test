@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
 
-import Dashboard from './pages/Dashboard';
-import ExamInterface from './pages/ExamInterface';
-import Analysis from './pages/Analysis';
-import InstallPrompt from './components/InstallPrompt';
-import { auth } from './lib/firebase';
-import { signInAnonymously } from 'firebase/auth';
+import Dashboard from "./pages/Dashboard";
+import ExamInterface from "./pages/ExamInterface";
+import Analysis from "./pages/Analysis";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import ProfileSetup from "./pages/ProfileSetup";
+import InstallPrompt from "./components/InstallPrompt";
+import { auth } from "./lib/firebase";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -23,9 +26,9 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: '20px', color: 'red', fontFamily: 'monospace' }}>
+        <div style={{ padding: "20px", color: "red", fontFamily: "monospace" }}>
           <h2>Something went wrong in the UI.</h2>
-          <details style={{ whiteSpace: 'pre-wrap' }}>
+          <details style={{ whiteSpace: "pre-wrap" }}>
             {this.state.error && this.state.error.toString()}
             <br />
             {this.state.info && this.state.info.componentStack}
@@ -37,48 +40,108 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-
 function App() {
-  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
+  const [isDark, setIsDark] = useState(() => {
+    const savedTheme = localStorage.getItem("theme");
+    return savedTheme !== null ? savedTheme === "dark" : false; // Default to light mode
+  });
   const toggleTheme = () => setIsDark(!isDark);
 
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark);
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    document.documentElement.classList.toggle("dark", isDark);
+    localStorage.setItem("theme", isDark ? "dark" : "light");
   }, [isDark]);
 
   useEffect(() => {
-    // Authenticate anonymously so Firestore securely tracks this session without logging in
-    signInAnonymously(auth)
-      .then((cred) => {
-        console.log("Signed in anonymously:", cred.user.uid);
-        setUser({
-          uid: cred.user.uid,
-          name: 'Guest Aspirant',
-          email: 'anonymous@nimcet.in'
-        });
-      })
-      .catch((error) => {
-        console.error("Anonymous auth failed (Firestore widgets may be disabled):", error);
-        // Fallback to a local guest user for the FastAPI backend features
-        setUser({
-          uid: 'guest_local_id',
-          name: 'Guest Aspirant',
-          email: 'anonymous@nimcet.in'
-        });
-      });
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[var(--app-bg)] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[var(--border-color)] border-t-blue-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-panel text-main transition-colors duration-300">
+      <div className="min-h-screen bg-[var(--app-bg)] text-main transition-colors duration-300 font-sans">
         <ErrorBoundary>
           <Routes>
-            <Route path="/" element={<Dashboard isDark={isDark} toggleTheme={toggleTheme} user={user} setUser={setUser} />} />
-            <Route path="/test" element={<ExamInterface isDark={isDark} toggleTheme={toggleTheme} user={user} />} />
-            <Route path="/analysis/:testId" element={<Analysis isDark={isDark} toggleTheme={toggleTheme} user={user} />} />
+            {/* Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route
+              path="/profile-setup"
+              element={user ? <ProfileSetup /> : <Navigate to="/login" />}
+            />
+
+            {/* Protected App Routes */}
+            <Route
+              path="/home"
+              element={
+                user ? (
+                  <Dashboard
+                    isDark={isDark}
+                    toggleTheme={toggleTheme}
+                    user={user}
+                    setUser={setUser}
+                  />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+            <Route
+              path="/test"
+              element={
+                user ? (
+                  <ExamInterface
+                    isDark={isDark}
+                    toggleTheme={toggleTheme}
+                    user={user}
+                  />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+            <Route
+              path="/analysis/:testId"
+              element={
+                user ? (
+                  <Analysis
+                    isDark={isDark}
+                    toggleTheme={toggleTheme}
+                    user={user}
+                  />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+
+            {/* Redirect root to home or login */}
+            <Route
+              path="/"
+              element={<Navigate to={user ? "/home" : "/login"} />}
+            />
+
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </ErrorBoundary>
         <InstallPrompt />

@@ -1,0 +1,9 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /profile_pics/{userId}/{allPaths=**} {
+      allow read: if true; // Publicly readable profile pics
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
