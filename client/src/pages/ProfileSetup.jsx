@@ -28,6 +28,7 @@ export default function ProfileSetup() {
 
   const normalizedUsername = useMemo(() => normalizeUsername(formData.username), [formData.username]);
   const usernameValidated = normalizedUsername.length >= 3 && (usernameStatus === 'available' || normalizedUsername === initialUsername);
+  const profileInitial = (formData.fullName || auth.currentUser?.email || 'A').trim().charAt(0).toUpperCase();
 
   useEffect(() => {
     let active = true;
@@ -196,112 +197,155 @@ export default function ProfileSetup() {
 
       <section className="profile-setup-card">
         <header className="profile-setup-header">
-          <div />
-          <h1>Profile Setup</h1>
+          <div>
+            <p className="profile-setup-eyebrow">Settings</p>
+            <h1>Profile Details</h1>
+            <p className="profile-setup-subtitle">
+              Keep your NIMCET account polished and ready for every mock test session.
+            </p>
+          </div>
           <button type="button" onClick={() => navigate('/home')} className="profile-skip-button">
-            Skip
+            Back to dashboard
           </button>
         </header>
 
         <form onSubmit={handleSubmit} className="profile-setup-form">
-          <div className="profile-avatar-block">
-            <label className="profile-avatar-uploader">
-              {profilePreview ? (
-                <img src={profilePreview} alt="Profile preview" className="profile-avatar-image" />
-              ) : (
-                <div className="profile-avatar-placeholder">
-                  <span>A</span>
-                </div>
-              )}
-              <span className="profile-avatar-plus">
-                <Plus className="h-4 w-4" />
-              </span>
-              <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-            </label>
-            <button type="button" className="profile-photo-link">
-              Change Profile Photo
-            </button>
-          </div>
-
-          <label className="auth-field">
-            <span>Full Name</span>
-            <input
-              type="text"
-              value={formData.fullName}
-              onChange={(event) => updateField('fullName', event.target.value)}
-              placeholder="Full Name"
-              autoComplete="name"
-            />
-          </label>
-
-          <label className="auth-field">
-            <span>Username</span>
-            <div className="auth-password-wrap">
-              <input
-                type="text"
-                value={formData.username}
-                onChange={(event) => updateField('username', event.target.value)}
-                placeholder="Username"
-                autoComplete="off"
-              />
-              <div className="auth-status-icon" aria-live="polite">
-                {usernameStatus === 'checking' ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                {usernameStatus === 'available' ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : null}
-                {usernameStatus === 'taken' ? <XCircle className="h-4 w-4 text-red-400" /> : null}
+          <div className="profile-hero-card">
+            <div className="profile-avatar-block">
+              <label className="profile-avatar-uploader">
+                {profilePreview ? (
+                  <img src={profilePreview} alt="Profile preview" className="profile-avatar-image" />
+                ) : (
+                  <div className="profile-avatar-placeholder">
+                    <span>{profileInitial}</span>
+                  </div>
+                )}
+                <span className="profile-avatar-plus">
+                  <Plus className="h-4 w-4" />
+                </span>
+                <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+              </label>
+              <div className="profile-avatar-copy">
+                <h2>{formData.fullName || 'Your profile'}</h2>
+                <p>{normalizedUsername ? `@${normalizedUsername}` : 'Add a recognizable profile for your mock journey.'}</p>
+                <button type="button" className="profile-photo-link">
+                  Change Profile Photo
+                </button>
               </div>
             </div>
-          </label>
 
-          <p className={`auth-helper-text ${usernameValidated ? 'is-ready' : ''}`}>
-            {usernameStatus === 'checking' && 'Checking availability...'}
-            {usernameStatus === 'taken' && 'That username is already taken.'}
-            {usernameStatus === 'error' && 'Could not check username availability.'}
-            {usernameValidated && `@${normalizedUsername} is ready to go.`}
-            {usernameStatus === 'idle' && 'Validate your username before continuing.'}
-          </p>
-
-          <label className="auth-field">
-            <span>Bio</span>
-            <div className="profile-textarea-wrap">
-              <textarea
-                value={formData.bio}
-                onChange={(event) => updateField('bio', event.target.value.slice(0, 150))}
-                placeholder="Write a short bio"
-                rows="4"
-              />
-              <p>{formData.bio.length}/150</p>
+            <div className="profile-hero-stats">
+              <div className="profile-mini-stat">
+                <span>Status</span>
+                <strong>{usernameValidated ? 'Ready' : 'Editing'}</strong>
+              </div>
+              <div className="profile-mini-stat">
+                <span>Bio</span>
+                <strong>{formData.bio.length}/150</strong>
+              </div>
             </div>
-          </label>
+          </div>
 
-          <label className="auth-field">
-            <span>Website or portfolio</span>
-            <input
-              type="url"
-              value={formData.website}
-              onChange={(event) => updateField('website', event.target.value)}
-              placeholder="https://your-site.com"
-              autoComplete="url"
-            />
-          </label>
+          <div className="profile-settings-grid">
+            <div className="profile-settings-section">
+              <div className="profile-section-heading">
+                <h3>Public Identity</h3>
+                <p>This is what other collaborators and your dashboard surface will show.</p>
+              </div>
 
-          <label className="auth-field">
-            <span>Gender</span>
-            <div className="profile-select-wrap">
-              <select value={formData.gender} onChange={(event) => updateField('gender', event.target.value)}>
-                <option>Male</option>
-                <option>Female</option>
-                <option>Custom</option>
-                <option>Prefer not to say</option>
-              </select>
-              <ChevronDown className="h-4 w-4" />
+              <label className="auth-field">
+                <span>Full Name</span>
+                <input
+                  type="text"
+                  value={formData.fullName}
+                  onChange={(event) => updateField('fullName', event.target.value)}
+                  placeholder="Full Name"
+                  autoComplete="name"
+                />
+              </label>
+
+              <label className="auth-field">
+                <span>Username</span>
+                <div className="auth-password-wrap">
+                  <input
+                    type="text"
+                    value={formData.username}
+                    onChange={(event) => updateField('username', event.target.value)}
+                    placeholder="Username"
+                    autoComplete="off"
+                  />
+                  <div className="auth-status-icon" aria-live="polite">
+                    {usernameStatus === 'checking' ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                    {usernameStatus === 'available' ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : null}
+                    {usernameStatus === 'taken' ? <XCircle className="h-4 w-4 text-red-400" /> : null}
+                  </div>
+                </div>
+              </label>
+
+              <p className={`auth-helper-text ${usernameValidated ? 'is-ready' : ''}`}>
+                {usernameStatus === 'checking' && 'Checking availability...'}
+                {usernameStatus === 'taken' && 'That username is already taken.'}
+                {usernameStatus === 'error' && 'Could not check username availability.'}
+                {usernameValidated && `@${normalizedUsername} is ready to go.`}
+                {usernameStatus === 'idle' && 'Validate your username before continuing.'}
+              </p>
             </div>
-          </label>
+
+            <div className="profile-settings-section">
+              <div className="profile-section-heading">
+                <h3>Personal Details</h3>
+                <p>Add supporting details to make your profile feel complete.</p>
+              </div>
+
+              <label className="auth-field">
+                <span>Bio</span>
+                <div className="profile-textarea-wrap">
+                  <textarea
+                    value={formData.bio}
+                    onChange={(event) => updateField('bio', event.target.value.slice(0, 150))}
+                    placeholder="Write a short bio"
+                    rows="4"
+                  />
+                  <p>{formData.bio.length}/150</p>
+                </div>
+              </label>
+
+              <label className="auth-field">
+                <span>Website or portfolio</span>
+                <input
+                  type="url"
+                  value={formData.website}
+                  onChange={(event) => updateField('website', event.target.value)}
+                  placeholder="https://your-site.com"
+                  autoComplete="url"
+                />
+              </label>
+
+              <label className="auth-field">
+                <span>Gender</span>
+                <div className="profile-select-wrap">
+                  <select value={formData.gender} onChange={(event) => updateField('gender', event.target.value)}>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Custom</option>
+                    <option>Prefer not to say</option>
+                  </select>
+                  <ChevronDown className="h-4 w-4" />
+                </div>
+              </label>
+            </div>
+          </div>
 
           {error ? <div className="auth-alert">{error}</div> : null}
 
-          <button type="submit" disabled={!usernameValidated || loading} className="auth-primary-button">
-            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Get Started'}
-          </button>
+          <div className="profile-actions">
+            <button type="button" onClick={() => navigate('/home')} className="profile-secondary-button">
+              Cancel
+            </button>
+            <button type="submit" disabled={!usernameValidated || loading} className="auth-primary-button">
+              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save Changes'}
+            </button>
+          </div>
         </form>
       </section>
     </main>
