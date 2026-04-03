@@ -4,6 +4,7 @@ import { FacebookAuthProvider, createUserWithEmailAndPassword, signInWithPopup }
 import { collection, doc, getDocs, query, setDoc, where } from 'firebase/firestore';
 import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, ShieldCheck, Smartphone, UserRound, XCircle } from 'lucide-react';
 import { auth, db } from '../lib/firebase';
+import './AuthPages.css';
 
 const steps = [
   { id: 1, label: 'Identity', icon: Smartphone },
@@ -181,90 +182,90 @@ export default function Signup() {
   };
 
   return (
-    <main className="auth-shell auth-shell--signup">
-      <section className="auth-visual-panel">
-        <div className="auth-visual-backdrop" />
-        <div className="auth-visual-content">
-          <div className="auth-badge">
+    <main className="authx-page">
+      <section className="authx-visual">
+        <div className="authx-visual-content">
+          <div className="authx-badge">
             <AuraIcon className="w-4 h-4" />
-            ELITE ONBOARDING
+            <span>ELITE ONBOARDING</span>
           </div>
-          <h1 className="auth-hero-title">
-            <span className="block text-white">Start with</span>
-            <span className="block auth-gradient-text">Identity.</span>
-          </h1>
-          <p className="auth-hero-copy">
-            A structured path for serious aspirants. Clear progress, elite feedback.
-          </p>
 
-          <div className="insight-hub">
-            <div className="glass-card glass-card--stats" style={{ top: '20px' }}>
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                  <Layout className="text-blue-400" size={20} />
+          <div>
+            <h1 className="authx-visual-title">
+              Start with <span className="authx-gradient">Identity.</span>
+            </h1>
+            <p className="authx-visual-copy">
+              A structured signup path for serious aspirants. Clear progress,
+              elite feedback, and a premium first impression.
+            </p>
+          </div>
+
+          <div className="authx-stack">
+            <div className="authx-card authx-card--front">
+              <span className="authx-label">STRUCTURED PATH</span>
+              <div className="authx-insight-row">
+                <div className="authx-icon-wrap">
+                  <Layout size={20} />
                 </div>
-                <p className="font-bold">Structured Path</p>
+                <div>
+                  <p className="authx-insight-title">Step {step} of 3</p>
+                  <p className="authx-muted">Identity, profile, and security</p>
+                </div>
               </div>
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">Identity Setup</span>
-                  <span className="text-blue-400">Step 1/3</span>
+              <div className="authx-progress">
+                <div className="authx-progress-bar">
+                  <div className="authx-progress-fill" style={{ width: `${(step / 3) * 100}%` }} />
                 </div>
-                <div className="h-1.5 w-full bg-white/5 rounded-full">
-                  <div className="h-full w-1/3 bg-blue-500 rounded-full" />
-                </div>
+                <p className="authx-progress-note">Built to get aspirants into the mock engine quickly.</p>
               </div>
             </div>
 
-            <div className="glass-card glass-card--insights" style={{ top: '160px', left: '80px' }}>
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                  <UserCheck className="text-emerald-400" size={20} />
+            <div className="authx-card authx-card--back">
+              <span className="authx-label">VERIFIED STATUS</span>
+              <div className="authx-insight-row">
+                <div className="authx-icon-wrap">
+                  <UserCheck size={20} />
                 </div>
-                <p className="font-bold">Verified Status</p>
+                <div>
+                  <p className="authx-insight-title">Connected Setup</p>
+                  <p className="authx-muted">Real-time ranking and insights await after signup.</p>
+                </div>
               </div>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                Connect your account to the official NIMCET Mock engine for real-time ranking and elite insights.
+              <p className="authx-visual-copy" style={{ marginTop: '1rem', fontSize: '0.92rem', maxWidth: '100%' }}>
+                Connect your account to the official NIMCET Mock engine for real-time ranking and performance tracking.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="auth-form-panel">
-        <div className="auth-card">
-          <div className="auth-card-header">
-            <p className="auth-brand-mark">NIMCET Mock</p>
-            <h2>Create your account</h2>
-            <p>Structured onboarding. Optimized for success.</p>
-          </div>
+      <section className="authx-panel">
+        <div className="authx-form-wrap">
+          <h2 className="authx-heading">Create your account</h2>
+          <p className="authx-subheading">
+            Structured onboarding. Optimized for success.
+          </p>
 
-          <button type="button" onClick={handleFacebookSignup} disabled={loading} className="facebook-button facebook-button--filled">
+          <button type="button" onClick={handleFacebookSignup} disabled={loading} className="authx-button authx-button--secondary">
             <FacebookIcon className="h-5 w-5" />
             <span>Log in with Facebook</span>
           </button>
 
-          <div className="auth-divider auth-divider--spaced">
-            <span />
-            <p>OR</p>
-            <span />
-          </div>
-
-          <form onSubmit={handleSignup} className="auth-form">
-            <div className="signup-step-indicator">
+          <form onSubmit={handleSignup} className="authx-form" style={{ marginTop: '1.25rem' }}>
+            <div className="authx-step-row">
               {steps.map(({ id, label }) => (
-                <div key={id} className={`signup-step-pill ${step === id ? 'is-current' : ''}`}>
-                  <span>{id}</span>
-                  <p>{label}</p>
+                <div key={id} className={`authx-step ${step === id ? 'is-current' : ''}`}>
+                  {id}. {label}
                 </div>
               ))}
             </div>
 
             {step === 1 ? (
               <>
-                <label className="auth-field">
+                <label className="authx-field">
                   <span>Email or mobile number</span>
                   <input
+                    className="authx-input"
                     type="text"
                     value={formData.identity}
                     onChange={(event) => updateField('identity', event.target.value)}
@@ -272,7 +273,7 @@ export default function Signup() {
                     autoComplete="username"
                   />
                 </label>
-                <p className="auth-helper-text">
+                <p className="authx-helper">
                   Use email for Firebase Auth today. Phone can be connected in the next integration pass.
                 </p>
               </>
@@ -280,9 +281,10 @@ export default function Signup() {
 
             {step === 2 ? (
               <>
-                <label className="auth-field">
+                <label className="authx-field">
                   <span>Full name</span>
                   <input
+                    className="authx-input"
                     type="text"
                     value={formData.fullName}
                     onChange={(event) => updateField('fullName', event.target.value)}
@@ -291,17 +293,18 @@ export default function Signup() {
                   />
                 </label>
 
-                <label className="auth-field">
+                <label className="authx-field">
                   <span>Username</span>
-                  <div className="auth-password-wrap">
+                  <div className="authx-input-wrap">
                     <input
+                      className="authx-input"
                       type="text"
                       value={formData.username}
                       onChange={(event) => updateField('username', event.target.value)}
                       placeholder="Choose a unique username"
                       autoComplete="off"
                     />
-                    <div className="auth-status-icon" aria-live="polite">
+                    <div style={{ paddingRight: '0.9rem', display: 'flex', alignItems: 'center' }} aria-live="polite">
                       {usernameStatus === 'checking' ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                       {usernameStatus === 'available' ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : null}
                       {usernameStatus === 'taken' ? <XCircle className="h-4 w-4 text-red-400" /> : null}
@@ -309,7 +312,7 @@ export default function Signup() {
                   </div>
                 </label>
 
-                <p className={`auth-helper-text ${usernameStatus === 'available' ? 'is-ready' : ''}`}>
+                <p className={`authx-helper ${usernameStatus === 'available' ? 'is-ready' : ''}`}>
                   {usernameStatus === 'available' && `@${normalizedUsername} is available.`}
                   {usernameStatus === 'taken' && 'This username is already taken.'}
                   {usernameStatus === 'checking' && 'Checking availability in Firestore...'}
@@ -321,9 +324,10 @@ export default function Signup() {
 
             {step === 3 ? (
               <>
-                <label className="auth-field">
+                <label className="authx-field">
                   <span>Create password</span>
                   <input
+                    className="authx-input"
                     type="password"
                     value={formData.password}
                     onChange={(event) => updateField('password', event.target.value)}
@@ -331,17 +335,17 @@ export default function Signup() {
                     autoComplete="new-password"
                   />
                 </label>
-                <p className={`auth-helper-text ${formData.password.length >= 6 ? 'is-ready' : ''}`}>
+                <p className={`authx-helper ${formData.password.length >= 6 ? 'is-ready' : ''}`}>
                   {formData.password.length >= 6 ? 'Password length looks good.' : 'Your password must be at least 6 characters.'}
                 </p>
               </>
             ) : null}
 
-            {error ? <div className="auth-alert">{error}</div> : null}
+            {error ? <div className="authx-alert">{error}</div> : null}
 
-            <div className="signup-actions">
+            <div className="authx-split-actions">
               {step > 1 ? (
-                <button type="button" onClick={handleBack} className="auth-secondary-button">
+                <button type="button" onClick={handleBack} className="authx-button authx-button--secondary">
                   <ArrowLeft className="h-4 w-4" />
                   Back
                 </button>
@@ -354,31 +358,29 @@ export default function Signup() {
                   type="button"
                   onClick={handleNext}
                   disabled={step === 1 ? !canContinueIdentity : !canContinueProfile}
-                  className="auth-primary-button auth-primary-button--inline"
+                  className="authx-button"
                 >
                   Next
                   <ArrowRight className="h-4 w-4" />
                 </button>
               ) : (
-                <button type="submit" disabled={!canSubmit} className="auth-primary-button auth-primary-button--inline">
+                <button type="submit" disabled={!canSubmit} className="authx-button">
                   {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Sign up'}
                 </button>
               )}
             </div>
           </form>
-        </div>
 
-        <div className="auth-card auth-card--compact">
-          <p>
-            Have an account? <Link to="/login">Log in</Link>
+          <p className="authx-footer">
+            Have an account? <Link to="/login" className="authx-link">Log in</Link>
           </p>
-        </div>
 
-        <footer className="auth-legal-footer">
-          <Link to="/terms">Terms</Link>
-          <Link to="/privacy">Privacy Policy</Link>
-          <Link to="/cookies">Cookies</Link>
-        </footer>
+          <div className="authx-footer-links">
+            <Link to="/terms" className="authx-link">Terms</Link>
+            <Link to="/privacy" className="authx-link">Privacy Policy</Link>
+            <Link to="/cookies" className="authx-link">Cookies</Link>
+          </div>
+        </div>
       </section>
     </main>
   );

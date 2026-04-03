@@ -82,8 +82,14 @@ function App() {
         <ErrorBoundary>
           <Routes>
             {/* Auth Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            <Route
+              path="/login"
+              element={user ? <Navigate to="/home" replace /> : <Login />}
+            />
+            <Route
+              path="/signup"
+              element={user ? <Navigate to="/home" replace /> : <Signup />}
+            />
             <Route
               path="/profile-setup"
               element={user ? <ProfileSetup /> : <Navigate to="/login" />}
@@ -137,11 +143,11 @@ function App() {
             {/* Redirect root to home or login */}
             <Route
               path="/"
-              element={<Navigate to={user ? "/home" : "/login"} />}
+              element={<Navigate to={user ? "/home" : "/login"} replace />}
             />
 
             {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </ErrorBoundary>
         <InstallPrompt />
