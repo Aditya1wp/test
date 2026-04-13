@@ -5,8 +5,8 @@ from sqlalchemy.sql import func
 from typing import List
 from pydantic import BaseModel
 import asyncio
-from . import models, database
-from .services import ai, google_drive
+import models, database
+from services import ai, google_drive
 
 
 class FeedbackRequest(BaseModel):
