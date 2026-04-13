@@ -67,7 +67,8 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
       if (!res.ok || !contentType || !contentType.includes("application/json")) {
         const text = await res.text();
         console.error("Server error response:", text);
-        alert("Server is initializing or busy. Please try again in 5 seconds.");
+        // Show the actual error message to the user for diagnostics
+        alert("Server Error (Diagnostics): " + text.substring(0, 200) + (text.length > 200 ? "..." : ""));
         return;
       }
       

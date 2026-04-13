@@ -99,7 +99,9 @@ def get_current_user(db: Session = Depends(get_db)):
     return user
 
 # --- STARTUP LOG ---
-print("🚀 NIMCET Mock Engine (Lite) is starting up on Vercel...")
+print("🚀 NIMCET Mock Engine (LITE) is booting up...")
+print(f"📂 Current Directory: {os.getcwd()}")
+print(f"🐍 Python Path: {sys.path}")
 
 # --- APP & ROUTES ---
 app = FastAPI(title="NIMCET Mock Engine Lite", version="3.0.0")
