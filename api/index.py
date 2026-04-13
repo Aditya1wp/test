@@ -97,9 +97,16 @@ def get_current_user(db: Session = Depends(get_db)):
         db.add(user); db.commit(); db.refresh(user)
     return user
 
+# --- STARTUP LOG ---
+print("🚀 NIMCET Mock Engine (Lite) is starting up on Vercel...")
+
 # --- APP & ROUTES ---
 app = FastAPI(title="NIMCET Mock Engine Lite", version="3.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+
+@app.get("/api/ping")
+def ping():
+    return {"status": "alive", "msg": "NIMCET Engine is ready!"}
 
 @app.post("/api/tests/generate")
 async def generate_test(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
