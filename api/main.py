@@ -83,10 +83,10 @@ async def generate_test(db: Session = Depends(get_db), current_user: models.User
     db.refresh(test_result)
 
     sections = [
-        ("Mathematics", 50),
-        ("Logical Reasoning", 40),
-        ("Computer", 15),
-        ("English", 15)
+        ("Mathematics", 5),
+        ("Logical Reasoning", 5),
+        ("Computer", 5),
+        ("English", 5)
     ]
     
     # We'll generate a smaller set for quick test purposes if needed, but going with full spec here might timeout or hit rate limits on normal tier.

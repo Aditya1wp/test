@@ -17,25 +17,16 @@ def generate_questions(section: str, count: int) -> list:
     Generates Nimcet mock test questions using Gemini.
     """
     prompt = f"""
-    You are an expert examiner for the NIMCET (NIT MCA Common Entrance Test) exam.
-    Generate {count} distinct multiple-choice questions for the '{section}' section.
+    You are an expert examiner for the NIMCET exam.
+    Generate {count} distinct, concise multiple-choice questions for the '{section}' section.
     
-    The sections and their typical content are:
-    - Mathematics (Set Theory, Probability, Algebra, Calculus, Vectors, Trigonometry)
-    - Logical Reasoning (Puzzles, Analytical Reasoning, Logical deductions)
-    - Computer (Computer Basics, Data Representation, Computer Architecture)
-    - English (Vocabulary, Grammar, Comprehension)
-    
-    Return pure JSON in this exact structure without any markdown formatting or backticks:
+    Return pure JSON in this exact structure without any markdown or backticks:
     [
       {{
-        "content": "Question text here?",
-        "option_a": "Option A text",
-        "option_b": "Option B text",
-        "option_c": "Option C text",
-        "option_d": "Option D text",
-        "correct_option": "A", // Or B, C, D
-        "explanation": "Step-by-step logic on why this is correct."
+        "content": "Short question?",
+        "option_a": "A", "option_b": "B", "option_c": "C", "option_d": "D",
+        "correct_option": "A",
+        "explanation": "Brief logic."
       }}
     ]
     """
