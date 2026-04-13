@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db } from '../lib/firebase.js';
 import { Folder, FileText, ExternalLink, UploadCloud, FolderPlus } from 'lucide-react';
 import Modal from './Modal';
-import { apiFetch } from '../lib/api';
+import { apiFetch } from '../lib/api.js';
 
 const MyFiles = ({ uid }) => {
   const [folders, setFolders] = useState([]);
