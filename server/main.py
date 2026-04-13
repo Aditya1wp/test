@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, File, Form, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
@@ -6,13 +6,22 @@ from typing import List
 from pydantic import BaseModel
 import asyncio
 import models, database
-from services import ai
+from services import ai, google_drive
 
 
 class FeedbackRequest(BaseModel):
     subject: str
     comment: str
     email: str | None = None
+
+
+class DriveUploadResponse(BaseModel):
+    drive_file_id: str
+    drive_name: str
+    mime_type: str | None = None
+    size: str | None = None
+    web_view_link: str | None = None
+    web_content_link: str | None = None
 
 def get_db():
     db = database.SessionLocal()
@@ -248,6 +257,37 @@ def get_test_analysis(test_id: int, db: Session = Depends(database.get_db)):
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the NIMCET Mock Engine API"}
+
+
+@app.post("/api/storage/google-drive/upload", response_model=DriveUploadResponse)
+async def upload_to_google_drive(
+    upload: UploadFile = File(...),
+    owner_uid: str = Form(...),
+):
+    if not owner_uid.strip():
+        raise HTTPException(status_code=400, detail="owner_uid is required")
+
+    try:
+        uploaded = google_drive.upload_file_to_drive(
+            upload.file,
+            filename=upload.filename or "uploaded-file",
+            mime_type=upload.content_type,
+        )
+    except google_drive.GoogleDriveConfigError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Google Drive upload failed: {exc}") from exc
+    finally:
+        await upload.close()
+
+    return DriveUploadResponse(
+        drive_file_id=uploaded["id"],
+        drive_name=uploaded.get("name", upload.filename or "uploaded-file"),
+        mime_type=uploaded.get("mimeType"),
+        size=uploaded.get("size"),
+        web_view_link=uploaded.get("webViewLink"),
+        web_content_link=uploaded.get("webContentLink"),
+    )
 
 @app.post("/api/feedback")
 def submit_feedback(req: FeedbackRequest, db: Session = Depends(get_db)):

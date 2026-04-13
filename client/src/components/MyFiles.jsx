@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Folder, FileText, Plus, UploadCloud, FolderPlus } from 'lucide-react';
+import { Folder, FileText, ExternalLink, UploadCloud, FolderPlus } from 'lucide-react';
 import Modal from './Modal';
+import { apiFetch } from '../lib/api';
 
 const MyFiles = ({ uid }) => {
   const [folders, setFolders] = useState([]);
@@ -14,7 +15,7 @@ const MyFiles = ({ uid }) => {
   const [saving, setSaving] = useState(false);
   
   const [folderName, setFolderName] = useState('');
-  const [fileData, setFileData] = useState({ name: '', folderId: '', size: '' });
+  const [fileData, setFileData] = useState({ file: null, folderId: '' });
 
   useEffect(() => {
     if (!uid) return;
@@ -60,20 +61,39 @@ const MyFiles = ({ uid }) => {
 
   const handleAddFile = async (e) => {
     e.preventDefault();
-    if (!fileData.name.trim()) return;
+    if (!fileData.file) return;
     setSaving(true);
     try {
+      const formData = new FormData();
+      formData.append('upload', fileData.file);
+      formData.append('owner_uid', uid);
+
+      const uploadResponse = await apiFetch('/api/storage/google-drive/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        const errorPayload = await uploadResponse.json().catch(() => ({}));
+        throw new Error(errorPayload.detail || 'Failed to upload file to Google Drive.');
+      }
+
+      const uploadData = await uploadResponse.json();
       await addDoc(collection(db, `users/${uid}/files`), {
-        name: fileData.name.trim(),
+        name: uploadData.drive_name,
         folderId: fileData.folderId || null,
-        size: fileData.size.trim() || 'Unknown',
-        createdAt: serverTimestamp()
+        size: uploadData.size ? `${(Number(uploadData.size) / (1024 * 1024)).toFixed(2)} MB` : 'Unknown',
+        mimeType: uploadData.mime_type || fileData.file.type || 'application/octet-stream',
+        driveFileId: uploadData.drive_file_id,
+        driveWebViewLink: uploadData.web_view_link || '',
+        driveWebContentLink: uploadData.web_content_link || '',
+        createdAt: serverTimestamp(),
       });
       setIsFileModalOpen(false);
-      setFileData({ name: '', folderId: '', size: '' });
+      setFileData({ file: null, folderId: '' });
     } catch (err) {
       console.error("Error adding file: ", err);
-      alert("Failed to add file.");
+      alert(err.message || "Failed to add file.");
     } finally {
       setSaving(false);
     }
@@ -147,8 +167,21 @@ const MyFiles = ({ uid }) => {
                             </p>
                           </div>
                         </div>
-                        <div className="text-xs text-gray-400 whitespace-nowrap ml-4">
-                          {file.createdAt?.toDate ? new Date(file.createdAt.toDate()).toLocaleDateString() : 'Just now'}
+                        <div className="flex items-center gap-3 ml-4">
+                          {file.driveWebViewLink ? (
+                            <a
+                              href={file.driveWebViewLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center text-xs font-semibold text-blue-600 dark:text-blue-400"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5 mr-1" />
+                              Open
+                            </a>
+                          ) : null}
+                          <div className="text-xs text-gray-400 whitespace-nowrap">
+                            {file.createdAt?.toDate ? new Date(file.createdAt.toDate()).toLocaleDateString() : 'Just now'}
+                          </div>
                         </div>
                       </li>
                     );
@@ -202,16 +235,17 @@ const MyFiles = ({ uid }) => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">File Name</label>
+            <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">Choose File</label>
             <input 
-              type="text" 
+              type="file"
               required
               disabled={saving}
-              placeholder="e.g. Integration_Notes.pdf"
               className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none transition text-sm"
-              value={fileData.name}
-              onChange={(e) => setFileData({...fileData, name: e.target.value})}
+              onChange={(e) => setFileData({ ...fileData, file: e.target.files?.[0] || null })}
             />
+            <p className="mt-2 text-xs text-gray-400">
+              The uploaded file will be stored in the Google Drive connected to `adityastudy003@gmail.com` through the backend bridge.
+            </p>
           </div>
           <div>
             <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">Target Folder</label>
@@ -226,17 +260,6 @@ const MyFiles = ({ uid }) => {
                 <option key={f.id} value={f.id}>{f.name}</option>
               ))}
             </select>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">File Size</label>
-            <input 
-              type="text" 
-              disabled={saving}
-              placeholder="e.g. 2.4 MB"
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none transition text-sm"
-              value={fileData.size}
-              onChange={(e) => setFileData({...fileData, size: e.target.value})}
-            />
           </div>
         </div>
       </Modal>
