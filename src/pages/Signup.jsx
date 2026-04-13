@@ -54,7 +54,7 @@ function generateRandomUsername() {
   const nouns = ['aspirant', 'warrior', 'learner', 'solver', 'topper', 'scholar'];
   const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
   const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  const num = Math.floor(1000 + Math.random() * 9000);
+  const num = Math.floor(100000 + Math.random() * 899999); // Increased to 6 digits
   return `${adj}_${noun}_${num}`;
 }
 
@@ -86,7 +86,7 @@ export default function Signup() {
   const identityLooksLikeEmail = /\S+@\S+\.\S+/.test(formData.identity.trim());
   const identityLooksLikePhone = /^[+\d][\d\s-]{7,}$/.test(formData.identity.trim());
   const canContinueIdentity = identityLooksLikeEmail || identityLooksLikePhone;
-  const canContinueProfile = formData.fullName.trim().length >= 2 && usernameStatus === 'available';
+  const canContinueProfile = formData.fullName.trim().length >= 2 && (usernameStatus === 'available' || usernameStatus === 'error');
   const canSubmit = formData.password.trim().length >= 6 && !loading;
 
   useEffect(() => {
@@ -101,12 +101,20 @@ export default function Signup() {
       try {
         const usernameQuery = query(collection(db, 'users'), where('username', '==', normalizedUsername));
         const snapshot = await getDocs(usernameQuery);
-        if (!isActive) {
-          return;
+        if (!isActive) return;
+        
+        if (snapshot.empty) {
+          setUsernameStatus('available');
+        } else {
+          setUsernameStatus('taken');
+          // Automatically regenerate if the generated username was taken
+          setTimeout(() => {
+            updateField('username', generateRandomUsername());
+          }, 1500);
         }
-        setUsernameStatus(snapshot.empty ? 'available' : 'taken');
       } catch (checkError) {
         if (isActive) {
+          console.warn("Username check failed, allowing optimistic availability:", checkError);
           setUsernameStatus('error');
         }
       }
