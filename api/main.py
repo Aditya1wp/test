@@ -24,6 +24,12 @@ class DriveUploadResponse(BaseModel):
     web_content_link: str | None = None
 
 def get_db():
+    # Defensive table creation on every request start if needed (Safest for Vercel)
+    try:
+        models.Base.metadata.create_all(bind=database.engine)
+    except Exception as e:
+        print(f"⚠️ DB Setup Error (Deferred): {e}")
+        
     db = database.SessionLocal()
     try:
         yield db
@@ -31,28 +37,27 @@ def get_db():
         db.close()
 
 def get_current_user(db: Session = Depends(get_db)):
-    # Hardcoded Guest User for a system without Auth
-    user = db.query(models.User).filter(models.User.email == "guest@nimcet.in").first()
-    if not user:
-        user = models.User(
-            name="Guest Aspirant",
-            email="guest@nimcet.in",
-            mobile="0000000000",
-            state="N/A",
-            study_place="N/A",
-            exam_year=2024,
-            hashed_password=""
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-    return user
-
-# Create the database tables safely
-try:
-    models.Base.metadata.create_all(bind=database.engine)
-except Exception as db_init_err:
-    print(f"⚠️ Could not initialize DB tables: {db_init_err}")
+    try:
+        # Hardcoded Guest User for a system without Auth
+        user = db.query(models.User).filter(models.User.email == "guest@nimcet.in").first()
+        if not user:
+            user = models.User(
+                name="Guest Aspirant",
+                email="guest@nimcet.in",
+                mobile="0000000000",
+                state="N/A",
+                study_place="N/A",
+                exam_year=2024,
+                hashed_password=""
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        return user
+    except Exception as e:
+        print(f"⚠️ Error fetching current user: {e}")
+        # Return a non-persisted user object so the app doesn't crash during boot
+        return models.User(id=0, name="Guest Aspirant", email="guest@nimcet.in")
 
 app = FastAPI(title="NIMCET Mock Engine API", version="1.0.0")
 

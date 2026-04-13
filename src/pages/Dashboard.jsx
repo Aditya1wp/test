@@ -61,14 +61,27 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
     setLoading(true);
     try {
       const res = await apiFetch('/api/tests/generate', { method: 'POST' });
+      
+      // Before calling .json(), check if the response is actually JSON
+      const contentType = res.headers.get("content-type");
+      if (!res.ok || !contentType || !contentType.includes("application/json")) {
+        const text = await res.text();
+        console.error("Server error response:", text);
+        alert("Server is initializing or busy. Please try again in 5 seconds.");
+        return;
+      }
+      
       const data = await res.json();
       if (data.test_id) {
         navigate('/test', { state: { testId: data.test_id } });
+      } else if (data.error) {
+        alert("Generation Error: " + data.error);
       } else {
         alert("Failed to create test: " + JSON.stringify(data));
       }
     } catch (err) {
-      alert("Error starting test: " + err);
+      console.error("Fetch error:", err);
+      alert("Connectivity Error: Could not reach the engine. Check your internet or try again later.");
     } finally {
       setLoading(false);
     }
