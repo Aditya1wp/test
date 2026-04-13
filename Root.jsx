@@ -9,7 +9,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ProfileSetup from "./pages/ProfileSetup";
 import InstallPrompt from "./components/InstallPrompt";
-import { auth } from "./lib/firebase";
+import { auth } from "./lib/firebase.js";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, XCircle, Info, Clock, BarChart, Sun, Moon } from 'lucide-react';
-import { apiFetch } from '../lib/api';
+import { apiFetch } from '../lib/api.js';
 
 const Analysis = ({ isDark, toggleTheme, user }) => {
   const { testId } = useParams();

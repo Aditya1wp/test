@@ -12,7 +12,7 @@ import {
   MessageSquare,
   Send
 } from 'lucide-react';
-import { apiFetch } from '../lib/api';
+import { apiFetch } from '../lib/api.js';
 import MyNotes from '../components/MyNotes';
 import TeamMembers from '../components/TeamMembers';
 import MyFiles from '../components/MyFiles';

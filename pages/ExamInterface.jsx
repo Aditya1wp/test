@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Clock, ChevronRight, ChevronLeft, Flag, CheckCircle, Sun, Moon } from 'lucide-react';
-import { apiFetch } from '../lib/api';
+import { apiFetch } from '../lib/api.js';
 import ProfileMenu from '../components/ProfileMenu';
 
 const SECTIONS = [
