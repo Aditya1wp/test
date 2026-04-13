@@ -74,50 +74,50 @@ class TestSubmit(BaseModel):
 
 @app.post("/api/tests/generate")
 async def generate_test(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    try:
+        test_result = models.TestResult(user_id=current_user.id)
+        db.add(test_result)
+        db.commit()
+        db.refresh(test_result)
 
-    test_result = models.TestResult(user_id=current_user.id)
-    db.add(test_result)
-    db.commit()
-    db.refresh(test_result)
-
-    sections = [
-        ("Mathematics", 5),
-        ("Logical Reasoning", 5),
-        ("Computer", 5),
-        ("English", 5)
-    ]
-    
-    # We'll generate a smaller set for quick test purposes if needed, but going with full spec here might timeout or hit rate limits on normal tier.
-    # To prevent rate-limit crashes, we'll fetch them sequentially with sleep or use a subset.
-    # For robust mock engine, we do a subset and scale up as required by the generator.
-    all_qs_data = []
-    for section_name, count in sections:
-        # In a real scenario we'd use 'count', but to mock we can request 'count'
-        questions = ai.generate_questions(section_name, count)
-        for q in questions:
-            q_model = models.Question(
-                section=section_name,
-                content=q.get("content", "Generated Question"),
-                option_a=q.get("option_a", "A"),
-                option_b=q.get("option_b", "B"),
-                option_c=q.get("option_c", "C"),
-                option_d=q.get("option_d", "D"),
-                correct_option=q.get("correct_option", "A"),
-                explanation=q.get("explanation", "")
-            )
-            db.add(q_model)
-            db.commit()
-            db.refresh(q_model)
-            
-            # Create question result
-            q_res = models.QuestionResult(test_result_id=test_result.id, question_id=q_model.id)
-            db.add(q_res)
-            all_qs_data.append(q_model)
-    
-    db.commit()
-    return {"message": "Test generated", "test_id": test_result.id}
+        sections = [
+            ("Mathematics", 5),
+            ("Logical Reasoning", 5),
+            ("Computer", 5),
+            ("English", 5)
+        ]
+        
+        all_qs_data = []
+        for section_name, count in sections:
+            try:
+                questions = ai.generate_questions(section_name, count)
+                for q in questions:
+                    q_model = models.Question(
+                        section=section_name,
+                        content=q.get("content", "Generated Question"),
+                        option_a=q.get("option_a", "A"),
+                        option_b=q.get("option_b", "B"),
+                        option_c=q.get("option_c", "C"),
+                        option_d=q.get("option_d", "D"),
+                        correct_option=q.get("correct_option", "A"),
+                        explanation=q.get("explanation", "")
+                    )
+                    db.add(q_model)
+                    db.commit()
+                    db.refresh(q_model)
+                    
+                    q_res = models.QuestionResult(test_result_id=test_result.id, question_id=q_model.id)
+                    db.add(q_res)
+                    all_qs_data.append(q_model)
+            except Exception as section_err:
+                print(f"Error in section {section_name}: {section_err}")
+                continue
+        
+        db.commit()
+        return {"message": "Test generated", "test_id": test_result.id}
+    except Exception as e:
+        print(f"FATAL ERROR in generate_test: {e}")
+        return {"error": str(e), "message": "Failed to generate test. Check server logs."}
 
 @app.get("/api/tests/{test_id}")
 def get_test(test_id: int, db: Session = Depends(database.get_db)):

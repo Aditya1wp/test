@@ -14,16 +14,16 @@ TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN")
 SQLALCHEMY_DATABASE_URL = "sqlite:///./nimcet.db"
 engine_args = {"check_same_thread": False}
 
-# Attempt to use Turso ONLY if the driver is successfully loaded
 try:
     if TURSO_URL and TURSO_TOKEN:
-        # We try to import the driver first
-        import sqlalchemy_libsql 
-        
-    engine = create_engine(SQLALCHEMY_DATABASE_URL)
-else:
+        import sqlalchemy_libsql
+        # Correct URL for Turso if needed, otherwise fallback
+        engine = create_engine(SQLALCHEMY_DATABASE_URL)
+    else:
+        raise ImportError("No Turso credentials")
+except Exception as e:
     # Local Development Logic (Offline)
-    print("🏠 Connecting to Local Database (nimcet.db)...")
+    print(f"🏠 Connecting to Local Database (nimcet.db)... Reason: {e}")
     SQLALCHEMY_DATABASE_URL = "sqlite:///./nimcet.db"
     engine = create_engine(
         SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
