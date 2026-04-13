@@ -48,8 +48,11 @@ def get_current_user(db: Session = Depends(get_db)):
         db.refresh(user)
     return user
 
-# Create the database tables
-models.Base.metadata.create_all(bind=database.engine)
+# Create the database tables safely
+try:
+    models.Base.metadata.create_all(bind=database.engine)
+except Exception as db_init_err:
+    print(f"⚠️ Could not initialize DB tables: {db_init_err}")
 
 app = FastAPI(title="NIMCET Mock Engine API", version="1.0.0")
 

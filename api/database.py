@@ -17,10 +17,16 @@ engine_args = {"check_same_thread": False}
 try:
     if TURSO_URL and TURSO_TOKEN:
         import sqlalchemy_libsql
-        # Correct URL for Turso if needed, otherwise fallback
-        engine = create_engine(SQLALCHEMY_DATABASE_URL)
+        # Turso requires the sqlite+libsql:// scheme and authToken in the URL or connect_args
+        db_url = TURSO_URL.replace("libsql://", "sqlite+libsql://").replace("https://", "sqlite+libsql://")
+        if "authToken=" not in db_url:
+            connector = "?" if "?" not in db_url else "&"
+            db_url += f"{connector}authToken={TURSO_TOKEN}"
+        
+        engine = create_engine(db_url)
+        print("☁️ Connected to Turso Cloud Database!")
     else:
-        raise ImportError("No Turso credentials")
+        raise ImportError("No Turso credentials found. Falling back to local.")
 except Exception as e:
     # Local Development Logic (Offline)
     print(f"🏠 Connecting to Local Database (nimcet.db)... Reason: {e}")
