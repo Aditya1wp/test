@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 
-import Dashboard from "./pages/Dashboard";
-import ExamInterface from "./pages/ExamInterface";
-import Analysis from "./pages/Analysis";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import ProfileSetup from "./pages/ProfileSetup";
-import InstallPrompt from "./components/InstallPrompt";
-import { auth } from "./lib/firebase.js";
+import Dashboard from "../pages/Dashboard";
+import ExamInterface from "../pages/ExamInterface";
+import Analysis from "../pages/Analysis";
+import Login from "../pages/Login";
+import Signup from "../pages/Signup";
+import ProfileSetup from "../pages/ProfileSetup";
+import InstallPrompt from "../components/InstallPrompt";
+import { auth } from "../lib/firebase.js";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
