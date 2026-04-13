@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "server/main.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "client/$1"
+    }
+  ],
+  "builds": [
+    {
+      "src": "server/main.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "client/package.json",
+      "use": "@vercel/static-build"
+    }
+  ]
+}
