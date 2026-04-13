@@ -1,3 +1,11 @@
+import os
+import sys
+
+# Force Vercel to see modules in the current directory
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
 from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, File, Form, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
