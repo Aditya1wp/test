@@ -12,6 +12,7 @@ import sys
 import json
 import random
 
+# --- DATABASE SETUP ---
 # Relocated to /tmp for Vercel Writable Filesystem Persistence
 SQLALCHEMY_DATABASE_URL = "sqlite:////tmp/nimcet.db"
 engine = create_engine(
