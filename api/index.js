@@ -23,28 +23,19 @@ const upload = multer({
 
 const getDriveService = () => {
   try {
-    const serviceAccount = process.env.GOOGLE_SERVICE_ACCOUNT_JSON 
-      ? JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON) 
-      : null;
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
 
-    if (!serviceAccount) {
-      console.error("GOOGLE_SERVICE_ACCOUNT_JSON env var is missing or empty.");
+    if (!clientId || !clientSecret || !refreshToken) {
+      console.error("GOOGLE_CLIENT_ID, SECRET, or REFRESH_TOKEN is missing.");
       return null;
     }
 
-    // Fix for private key formatting in environment variables
-    const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n');
-
-    // Use higher-level GoogleAuth for better reliability
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: serviceAccount.client_email,
-        private_key: privateKey,
-      },
-      scopes: ['https://www.googleapis.com/auth/drive'],
-    });
+    const auth = new google.auth.OAuth2(clientId, clientSecret, "https://developers.google.com/oauthplayground");
+    auth.setCredentials({ refresh_token: refreshToken });
     
-    console.log("Google Drive Client initialized successfully for:", serviceAccount.client_email);
+    console.log("Google Drive Client initialized successfully via OAuth2.");
     return google.drive({ version: 'v3', auth });
   } catch (err) {
     console.error("CRITICAL: Failed to initialize Google Drive Service:", err.message);
