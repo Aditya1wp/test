@@ -22,19 +22,32 @@ const upload = multer({
 });
 
 const getDriveService = () => {
-  const serviceAccount = process.env.GOOGLE_SERVICE_ACCOUNT_JSON 
-    ? JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON) 
-    : null;
+  try {
+    const serviceAccount = process.env.GOOGLE_SERVICE_ACCOUNT_JSON 
+      ? JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON) 
+      : null;
 
-  if (!serviceAccount) return null;
+    if (!serviceAccount) {
+      console.error("GOOGLE_SERVICE_ACCOUNT_JSON is missing");
+      return null;
+    }
 
-  const auth = new google.auth.JWT(
-    serviceAccount.client_email,
-    null,
-    serviceAccount.private_key,
-    ['https://www.googleapis.com/auth/drive.file']
-  );
-  return google.drive({ version: 'v3', auth });
+    // Fix for private key formatting issues in environment variables
+    const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n');
+
+    const auth = new google.auth.JWT(
+      serviceAccount.client_email,
+      null,
+      privateKey,
+      ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/drive.file']
+    );
+    
+    console.log("Google Drive Auth initialized for:", serviceAccount.client_email);
+    return google.drive({ version: 'v3', auth });
+  } catch (err) {
+    console.error("Error initializing Google Drive Service:", err);
+    return null;
+  }
 };
 
 // --- DATABASE SETUP ---
