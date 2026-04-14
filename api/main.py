@@ -13,9 +13,12 @@ import json
 import random
 
 # --- DATABASE SETUP ---
-# Relocated to /tmp for Vercel Writable Filesystem Persistence
-# Use a local database file for reliability
-SQLALCHEMY_DATABASE_URL = "sqlite:///./nimcet.db"
+# Use /tmp for Vercel Writable Filesystem Persistence
+if os.environ.get("VERCEL"):
+    SQLALCHEMY_DATABASE_URL = "sqlite:////tmp/nimcet.db"
+else:
+    SQLALCHEMY_DATABASE_URL = "sqlite:///./nimcet.db"
+
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
