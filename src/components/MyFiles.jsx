@@ -65,25 +65,44 @@ const MyFiles = ({ uid }) => {
     setSaving(true);
     try {
       const file = fileData.file;
-      const storageRef = ref(storage, `users/${uid}/${Date.now()}_${file.name}`);
-      const snapshot = await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(snapshot.ref);
+      
+      // We use the new backend endpoint for Google Drive
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch('/api/storage/google-drive/upload', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to upload to Google Drive");
+      }
 
+      // Save the metadata to Firestore so it shows up in the 'My Files' list
       await addDoc(collection(db, `users/${uid}/files`), {
         name: file.name,
         folderId: fileData.folderId || null,
         size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
         mimeType: file.type || 'application/octet-stream',
-        driveFileId: 'firebase_storage',
-        driveWebViewLink: downloadURL,
-        driveWebContentLink: downloadURL,
+        driveFileId: result.fileId,
+        driveWebViewLink: result.url,
+        driveWebContentLink: result.downloadUrl,
         createdAt: serverTimestamp(),
       });
+      
       setIsFileModalOpen(false);
       setFileData({ file: null, folderId: '' });
     } catch (err) {
       console.error("Error adding file: ", err);
-      alert(err.message || "Failed to add file.");
+      // Give the user a clear hint if the backend isn't set up yet
+      if (err.message.includes("GOOGLE_SERVICE_ACCOUNT_JSON")) {
+         alert("Backend Error: Please make sure you have added your GOOGLE_SERVICE_ACCOUNT_JSON to Vercel environment variables.");
+      } else {
+         alert(err.message || "Failed to add file.");
+      }
     } finally {
       setSaving(false);
     }
