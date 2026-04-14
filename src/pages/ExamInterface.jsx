@@ -5,8 +5,8 @@ import { apiFetch } from '../lib/api.js';
 import ProfileMenu from '../components/ProfileMenu';
 
 const SECTIONS = [
-  { id: 'Mathematics', title: 'Mathematics', duration: 60 * 60 },
-  { id: 'Logical Reasoning', title: 'Analytical Ability & Logical Reasoning', duration: 35 * 60 },
+  { id: 'Mathematics', title: 'Mathematics', duration: 50 * 60 },
+  { id: 'Logical Reasoning', title: 'Analytical Ability & Logical Reasoning', duration: 45 * 60 },
   { id: 'Computer Awareness', title: 'Computer Awareness', duration: 10 * 60 },
   { id: 'General English', title: 'General English', duration: 15 * 60 }
 ];
