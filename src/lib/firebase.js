@@ -4,12 +4,12 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBJqPkWUje-396EBfZ3CjNeGSwIh25vFNA",
-  authDomain: "mocktest-e666b.firebaseapp.com",
-  projectId: "mocktest-e666b",
-  storageBucket: "mocktest-e666b.firebasestorage.app",
-  messagingSenderId: "1031041404718",
-  appId: "1:1031041404718:web:44c5d82eb838c62073b4bf"
+  apiKey: "AIzaSyDY3fOjn2twa1oYVG8yicf8dTb7IySkTj4",
+  authDomain: "mock-engine-d3c15.firebaseapp.com",
+  projectId: "mock-engine-d3c15",
+  storageBucket: "mock-engine-d3c15.firebasestorage.app",
+  messagingSenderId: "37782531470",
+  appId: "1:37782531470:web:c15e72ce3902ef994648df"
 };
 
 const app = initializeApp(firebaseConfig);
