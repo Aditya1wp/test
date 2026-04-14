@@ -23,19 +23,28 @@ const upload = multer({
 
 const getDriveService = () => {
   try {
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+    const clientId = (process.env.GOOGLE_CLIENT_ID || "").trim();
+    const clientSecret = (process.env.GOOGLE_CLIENT_SECRET || "").trim();
+    const refreshToken = (process.env.GOOGLE_REFRESH_TOKEN || "").trim();
 
     if (!clientId || !clientSecret || !refreshToken) {
-      console.error("GOOGLE_CLIENT_ID, SECRET, or REFRESH_TOKEN is missing.");
+      console.error("DEBUG: Missing Google OAuth Credentials:", { 
+        hasId: !!clientId, 
+        hasSecret: !!clientSecret, 
+        hasToken: !!refreshToken 
+      });
       return null;
     }
 
-    const auth = new google.auth.OAuth2(clientId, clientSecret, "https://developers.google.com/oauthplayground");
+    const auth = new google.auth.OAuth2(
+      clientId, 
+      clientSecret, 
+      "https://developers.google.com/oauthplayground"
+    );
+    
     auth.setCredentials({ refresh_token: refreshToken });
     
-    console.log("Google Drive Client initialized successfully via OAuth2.");
+    console.log("DEBUG: Google Drive OAuth2 Client initialized (ID ends with ...%s)", clientId.slice(-10));
     return google.drive({ version: 'v3', auth });
   } catch (err) {
     console.error("CRITICAL: Failed to initialize Google Drive Service:", err.message);
