@@ -134,6 +134,8 @@ app.post('/api/tests/generate', async (req, res) => {
       ["General English", 20]
     ];
 
+    await dbRun("BEGIN TRANSACTION"); // Speeds up inserts drastically
+
     for (const [section, count] of sections) {
       const bank = questionsData[section] || [];
       if (bank.length === 0) {
@@ -161,8 +163,11 @@ app.post('/api/tests/generate', async (req, res) => {
       }
     }
 
+    await dbRun("COMMIT"); // Save all changes at once
+
     res.json({ test_id: testId });
   } catch (err) {
+    await dbRun("ROLLBACK").catch(() => {});
     console.error("Generate Error:", err);
     res.status(500).json({ error: err.message });
   }
