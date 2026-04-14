@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../lib/firebase.js';
 import { Folder, FileText, ExternalLink, UploadCloud, FolderPlus } from 'lucide-react';
 import Modal from './Modal';
@@ -66,17 +66,8 @@ const MyFiles = ({ uid }) => {
     try {
       const file = fileData.file;
       const storageRef = ref(storage, `users/${uid}/${Date.now()}_${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      await new Promise((resolve, reject) => {
-        uploadTask.on('state_changed', 
-          null, 
-          (error) => reject(error), 
-          () => resolve()
-        );
-      });
-
-      const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
 
       await addDoc(collection(db, `users/${uid}/files`), {
         name: file.name,
