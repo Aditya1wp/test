@@ -64,7 +64,6 @@ export default function Login() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, identifier.trim(), password);
       if (!userCredential.user.emailVerified) {
-        await signOut(auth);
         navigate('/verify-email', { state: { email: identifier.trim() } });
         return;
       }

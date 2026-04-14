@@ -102,7 +102,6 @@ export default function Signup() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, formData.identity.trim(), formData.password);
       await sendEmailVerification(userCredential.user);
-      await signOut(auth);
       navigate('/verify-email', { state: { email: formData.identity.trim() } });
     } catch (signupError) {
       setError(formatSignupError(signupError));
