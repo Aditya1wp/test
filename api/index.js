@@ -28,24 +28,26 @@ const getDriveService = () => {
       : null;
 
     if (!serviceAccount) {
-      console.error("GOOGLE_SERVICE_ACCOUNT_JSON is missing");
+      console.error("GOOGLE_SERVICE_ACCOUNT_JSON env var is missing or empty.");
       return null;
     }
 
-    // Fix for private key formatting issues in environment variables
+    // Fix for private key formatting in environment variables
     const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n');
 
-    const auth = new google.auth.JWT(
-      serviceAccount.client_email,
-      null,
-      privateKey,
-      ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/drive.file']
-    );
+    // Use higher-level GoogleAuth for better reliability
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: serviceAccount.client_email,
+        private_key: privateKey,
+      },
+      scopes: ['https://www.googleapis.com/auth/drive'],
+    });
     
-    console.log("Google Drive Auth initialized for:", serviceAccount.client_email);
+    console.log("Google Drive Client initialized successfully for:", serviceAccount.client_email);
     return google.drive({ version: 'v3', auth });
   } catch (err) {
-    console.error("Error initializing Google Drive Service:", err);
+    console.error("CRITICAL: Failed to initialize Google Drive Service:", err.message);
     return null;
   }
 };
@@ -352,14 +354,20 @@ app.post('/api/storage/google-drive/upload', upload.single('file'), async (req, 
       fields: 'id, name, webViewLink, webContentLink'
     });
 
-    // Share file publicly so it can be downloaded/viewed
-    await driveService.permissions.create({
-      fileId: response.data.id,
-      requestBody: {
-        role: 'reader',
-        type: 'anyone',
-      },
-    });
+    console.log("File uploaded to Drive successfully:", response.data.id);
+
+    // Share file publicly
+    try {
+      await driveService.permissions.create({
+        fileId: response.data.id,
+        requestBody: {
+          role: 'reader',
+          type: 'anyone',
+        },
+      });
+    } catch (permErr) {
+      console.warn("Could not set public permissions, but file was uploaded:", permErr.message);
+    }
 
     res.json({
       success: true,
@@ -369,8 +377,12 @@ app.post('/api/storage/google-drive/upload', upload.single('file'), async (req, 
       downloadUrl: response.data.webContentLink
     });
   } catch (err) {
-    console.error("Google Drive Upload Error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("GOOGLE DRIVE UPLOAD FAILURE:");
+    console.error(" - Message:", err.message);
+    if (err.response) {
+      console.error(" - Google Data:", err.response.data);
+    }
+    res.status(500).json({ error: err.message || "Unknown Google Drive error" });
   }
 });
 
