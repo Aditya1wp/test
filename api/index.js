@@ -103,7 +103,7 @@ try {
   const jsonPath = path.join(__dirname, 'questions.json');
   if (fs.existsSync(jsonPath)) {
     questionsData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-    console.log("Loaded questions:", Object.keys(questionsData).map(k => `${k}: ${questionsData[k].length}`).join(', '));
+    console.log("Loaded questions keys:", Object.keys(questionsData));
   } else {
     console.error("questions.json NOT FOUND at", jsonPath);
   }
@@ -143,9 +143,16 @@ app.post('/api/tests/generate', async (req, res) => {
       
       for (let i = 0; i < count; i++) {
         const q = bank[i % bank.length];
+        // Correcting mapping to match questions.json schema
+        const optA = q.options ? q.options[0] : (q.option_a || '');
+        const optB = q.options ? q.options[1] : (q.option_b || '');
+        const optC = q.options ? q.options[2] : (q.option_c || '');
+        const optD = q.options ? q.options[3] : (q.option_d || '');
+        const correctOpt = q.answer || q.correct_option || 'A';
+
         const qInsert = await dbRun(
           "INSERT INTO questions (section, content, option_a, option_b, option_c, option_d, correct_option, explanation) VALUES (?,?,?,?,?,?,?,?)",
-          [section, q.content, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_option, q.explanation]
+          [section, q.content, optA, optB, optC, optD, correctOpt, q.explanation || '']
         );
         await dbRun(
           "INSERT INTO question_results (test_result_id, question_id) VALUES (?,?)",
@@ -174,11 +181,22 @@ app.get('/api/tests/:test_id', async (req, res) => {
       WHERE qr.test_result_id = ?
     `;
     const rows = await dbAll(sql, [testId]);
+    
+    // Safety check for empty results
+    if (rows.length === 0) {
+       return res.json({ test_id: testId, questions: [] });
+    }
+
     const questions = rows.map(r => ({
       id: r.id,
       section: r.section,
       content: r.content,
-      options: [r.option_a, r.option_b, r.option_c, r.option_d]
+      options: [
+        r.option_a.startsWith('A.') ? r.option_a : `A. ${r.option_a}`,
+        r.option_b.startsWith('B.') ? r.option_b : `B. ${r.option_b}`,
+        r.option_c.startsWith('C.') ? r.option_c : `C. ${r.option_c}`,
+        r.option_d.startsWith('D.') ? r.option_d : `D. ${r.option_d}`
+      ]
     }));
     res.json({ test_id: testId, questions });
   } catch (err) {
