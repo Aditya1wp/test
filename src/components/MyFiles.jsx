@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../lib/firebase.js';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../lib/firebase.js';
 import { Folder, FileText, ExternalLink, UploadCloud, FolderPlus } from 'lucide-react';
 import Modal from './Modal';
-import { apiFetch } from '../lib/api.js';
 
 const MyFiles = ({ uid }) => {
   const [folders, setFolders] = useState([]);
@@ -64,29 +64,28 @@ const MyFiles = ({ uid }) => {
     if (!fileData.file) return;
     setSaving(true);
     try {
-      const formData = new FormData();
-      formData.append('upload', fileData.file);
-      formData.append('owner_uid', uid);
+      const file = fileData.file;
+      const storageRef = ref(storage, `users/${uid}/${Date.now()}_${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, file);
 
-      const uploadResponse = await apiFetch('/api/storage/google-drive/upload', {
-        method: 'POST',
-        body: formData,
+      await new Promise((resolve, reject) => {
+        uploadTask.on('state_changed', 
+          null, 
+          (error) => reject(error), 
+          () => resolve()
+        );
       });
 
-      if (!uploadResponse.ok) {
-        const errorPayload = await uploadResponse.json().catch(() => ({}));
-        throw new Error(errorPayload.detail || 'Failed to upload file to Google Drive.');
-      }
+      const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
 
-      const uploadData = await uploadResponse.json();
       await addDoc(collection(db, `users/${uid}/files`), {
-        name: uploadData.drive_name,
+        name: file.name,
         folderId: fileData.folderId || null,
-        size: uploadData.size ? `${(Number(uploadData.size) / (1024 * 1024)).toFixed(2)} MB` : 'Unknown',
-        mimeType: uploadData.mime_type || fileData.file.type || 'application/octet-stream',
-        driveFileId: uploadData.drive_file_id,
-        driveWebViewLink: uploadData.web_view_link || '',
-        driveWebContentLink: uploadData.web_content_link || '',
+        size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+        mimeType: file.type || 'application/octet-stream',
+        driveFileId: 'firebase_storage',
+        driveWebViewLink: downloadURL,
+        driveWebContentLink: downloadURL,
         createdAt: serverTimestamp(),
       });
       setIsFileModalOpen(false);
@@ -244,7 +243,7 @@ const MyFiles = ({ uid }) => {
               onChange={(e) => setFileData({ ...fileData, file: e.target.files?.[0] || null })}
             />
             <p className="mt-2 text-xs text-gray-400">
-              The uploaded file will be stored in the Google Drive connected to `adityastudy003@gmail.com` through the backend bridge.
+              The uploaded file will be securely stored in your personal built-in Cloud Storage.
             </p>
           </div>
           <div>
