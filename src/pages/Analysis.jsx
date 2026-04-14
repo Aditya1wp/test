@@ -75,22 +75,26 @@ const Analysis = ({ isDark, toggleTheme, user }) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-main border-b border-main">
-          <div className="p-6 text-center">
-            <div className="text-gray-500 dark:text-gray-400 text-sm mb-1 font-medium">Mathematics</div>
-            <div className="text-xl font-bold">{data.math_score.toFixed(1)}</div>
+        <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-main border-b border-main">
+          <div className="p-4 text-center">
+            <div className="text-gray-500 dark:text-gray-400 text-[10px] uppercase font-bold mb-1">Mathematics</div>
+            <div className="text-lg font-bold">{data.math_score.toFixed(1)}</div>
           </div>
-          <div className="p-6 text-center">
-            <div className="text-gray-500 dark:text-gray-400 text-sm mb-1 font-medium">Reasoning</div>
-            <div className="text-xl font-bold">{data.reasoning_score.toFixed(1)}</div>
+          <div className="p-4 text-center">
+            <div className="text-gray-500 dark:text-gray-400 text-[10px] uppercase font-bold mb-1">Reasoning</div>
+            <div className="text-lg font-bold">{data.reasoning_score.toFixed(1)}</div>
           </div>
-          <div className="p-6 text-center">
-            <div className="text-gray-500 dark:text-gray-400 text-sm mb-1 font-medium">Computer/Eng</div>
-            <div className="text-xl font-bold">{data.computer_english_score.toFixed(1)}</div>
+          <div className="p-4 text-center">
+            <div className="text-gray-500 dark:text-gray-400 text-[10px] uppercase font-bold mb-1">Computer</div>
+            <div className="text-lg font-bold">{data.computer_score.toFixed(1)}</div>
           </div>
-          <div className="p-6 text-center">
-            <div className="text-gray-500 dark:text-gray-400 text-sm mb-1 font-medium">Accuracy</div>
-            <div className="text-xl font-bold">
+          <div className="p-4 text-center">
+            <div className="text-gray-500 dark:text-gray-400 text-[10px] uppercase font-bold mb-1">English</div>
+            <div className="text-lg font-bold">{data.english_score.toFixed(1)}</div>
+          </div>
+          <div className="p-4 text-center">
+            <div className="text-gray-500 dark:text-gray-400 text-[10px] uppercase font-bold mb-1">Accuracy</div>
+            <div className="text-lg font-bold">
               {((data.questions.filter(q => q.is_correct).length / data.questions.length) * 100).toFixed(0)}%
             </div>
           </div>

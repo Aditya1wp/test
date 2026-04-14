@@ -5,9 +5,10 @@ import { apiFetch } from '../lib/api.js';
 import ProfileMenu from '../components/ProfileMenu';
 
 const SECTIONS = [
-  { id: 'Mathematics', title: 'Mathematics', duration: 70 * 60 },
-  { id: 'Logical Reasoning', title: 'Analytical & Logical Reasoning', duration: 30 * 60 },
-  { id: 'Computer', title: 'Computer Awareness & English', duration: 20 * 60 }
+  { id: 'Mathematics', title: 'Mathematics', duration: 60 * 60 },
+  { id: 'Logical Reasoning', title: 'Analytical Ability & Logical Reasoning', duration: 35 * 60 },
+  { id: 'Computer Awareness', title: 'Computer Awareness', duration: 10 * 60 },
+  { id: 'General English', title: 'General English', duration: 15 * 60 }
 ];
 
 const ExamInterface = ({ isDark, toggleTheme, user, setUser }) => {
@@ -113,10 +114,7 @@ const ExamInterface = ({ isDark, toggleTheme, user, setUser }) => {
   const section = SECTIONS[currentSectionIndex];
   // Filter questions for current section conceptually, or just group them by what we have.
   // Our generator created sections exactly matching id labels.
-  const sectionQuestions = questions.filter(q => {
-      if (section.id === 'Computer') return q.section === 'Computer' || q.section === 'English';
-      return q.section === section.id;
-  });
+  const sectionQuestions = questions.filter(q => q.section === section.id);
   
   const question = sectionQuestions[currentQuestionIndex];
 
@@ -192,7 +190,9 @@ const ExamInterface = ({ isDark, toggleTheme, user, setUser }) => {
                   <h2 className="text-xl font-black text-gray-900 dark:text-white">Question</h2>
                 </div>
                 <div className="text-xs font-black px-4 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-300 tracking-widest shadow-sm">
-                  {section.id === 'Mathematics' ? '12 MARKS' : section.id === 'English' ? '4 MARKS' : '6 MARKS'}
+                  {section.id === 'Mathematics' ? '12 MARKS' : 
+                   section.id === 'Logical Reasoning' ? '6 MARKS' : 
+                   section.id === 'Computer Awareness' ? '8 MARKS' : '4 MARKS'}
                 </div>
               </div>
               
