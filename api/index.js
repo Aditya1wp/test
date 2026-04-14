@@ -143,8 +143,11 @@ app.post('/api/tests/generate', async (req, res) => {
         continue;
       }
       
+      // Shuffle the questions so they appear in a random order each time
+      const shuffledBank = [...bank].sort(() => 0.5 - Math.random());
+      
       for (let i = 0; i < count; i++) {
-        const q = bank[i % bank.length];
+        const q = shuffledBank[i % shuffledBank.length];
         // Correcting mapping to match questions.json schema
         const optA = q.options ? q.options[0] : (q.option_a || '');
         const optB = q.options ? q.options[1] : (q.option_b || '');
