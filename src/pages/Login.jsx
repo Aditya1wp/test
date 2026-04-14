@@ -1,23 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FacebookAuthProvider, signInWithEmailAndPassword, signInWithPopup, signOut } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { auth } from '../lib/firebase';
 import './AuthPages.css';
 
 function TrendingUp({ className, size = 24 }) {
   return (
-    <svg
-      className={className}
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
       <polyline points="17 6 23 6 23 12" />
     </svg>
@@ -29,14 +19,6 @@ function AuraIcon({ className, size = 24 }) {
     <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
       <path d="M5 3v4" /><path d="M19 17v4" /><path d="M3 5h4" /><path d="M17 19h4" />
-    </svg>
-  );
-}
-
-function FacebookIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M24 12.073C24 5.404 18.627 0 12 0S0 5.404 0 12.073c0 6.019 4.388 10.998 10.125 11.902v-8.42H7.078v-3.48h3.047V9.42c0-3.017 1.792-4.685 4.533-4.685 1.313 0 2.686.236 2.686.236v2.962H15.83c-1.49 0-1.956.93-1.956 1.885v2.257h3.328l-.532 3.48h-2.796v8.42C19.612 23.07 24 18.091 24 12.073Z" />
     </svg>
   );
 }
@@ -69,49 +51,23 @@ export default function Login() {
   const passwordReady = password.trim().length >= 6;
   const canSubmit = identifier.trim().length > 0 && passwordReady && !loading;
   const helperText = useMemo(() => {
-    if (!password.length) {
-      return 'Use your email and password to access your dashboard.';
-    }
-    if (!passwordReady) {
-      return 'Password must be at least 6 characters.';
-    }
+    if (!password.length) return 'Use your email and password to access your dashboard.';
+    if (!passwordReady) return 'Password must be at least 6 characters.';
     return 'Ready to sign in securely.';
   }, [password.length, passwordReady]);
 
   const handleLogin = async (event) => {
     event.preventDefault();
-    if (!canSubmit) {
-      return;
-    }
-
+    if (!canSubmit) return;
     setLoading(true);
     setError('');
-
     try {
       const userCredential = await signInWithEmailAndPassword(auth, identifier.trim(), password);
-      
-      // Verification check blocker
       if (!userCredential.user.emailVerified) {
-        await signOut(auth); // DO NOT allow token persistence 
+        await signOut(auth);
         navigate('/verify-email', { state: { email: identifier.trim() } });
         return;
       }
-
-      navigate('/home');
-    } catch (authError) {
-      setError(resolveAuthError(authError));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFacebookLogin = async () => {
-    setLoading(true);
-    setError('');
-
-    try {
-      const provider = new FacebookAuthProvider();
-      await signInWithPopup(auth, provider);
       navigate('/home');
     } catch (authError) {
       setError(resolveAuthError(authError));
@@ -170,12 +126,6 @@ export default function Login() {
                   <p className="authx-muted">78th Percentile (Active)</p>
                 </div>
               </div>
-              <div className="authx-progress">
-                <div className="authx-progress-bar">
-                  <div className="authx-progress-fill" style={{ width: '75%' }} />
-                </div>
-                <p className="authx-progress-note">Target Rank: AIR &lt; 50</p>
-              </div>
             </div>
           </div>
         </div>
@@ -230,27 +180,12 @@ export default function Login() {
               </div>
             </label>
 
-            <div className="authx-row">
-              <label className="authx-checkbox">
-                <input type="checkbox" />
-                <span>Remember me</span>
-              </label>
-              <a href="#forgot" className="authx-link">
-                Forgot Password?
-              </a>
-            </div>
-
             <p className={`authx-helper ${passwordReady ? 'is-ready' : ''}`}>{helperText}</p>
 
             {error ? <div className="authx-alert">{error}</div> : null}
 
             <button type="submit" disabled={!canSubmit} className="authx-button">
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Log in'}
-            </button>
-
-            <button type="button" onClick={handleFacebookLogin} disabled={loading} className="authx-button authx-button--secondary">
-              <FacebookIcon className="h-5 w-5" />
-              <span>Log in with Facebook</span>
             </button>
           </form>
 

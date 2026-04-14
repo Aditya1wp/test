@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FacebookAuthProvider, createUserWithEmailAndPassword, signInWithPopup, sendEmailVerification, signOut } from 'firebase/auth';
-import { collection, doc, getDocs, query, setDoc, where } from 'firebase/firestore';
-import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, ShieldCheck, Smartphone, UserRound, XCircle } from 'lucide-react';
-import { auth, db } from '../lib/firebase';
+import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from 'firebase/auth';
+import { ArrowLeft, ArrowRight, Loader2, ShieldCheck, Smartphone, UserRound } from 'lucide-react';
+import { auth } from '../lib/firebase';
 import './AuthPages.css';
 
 const steps = [
@@ -11,14 +10,6 @@ const steps = [
   { id: 2, label: 'Profile', icon: UserRound },
   { id: 3, label: 'Security', icon: ShieldCheck },
 ];
-
-function FacebookIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M24 12.073C24 5.404 18.627 0 12 0S0 5.404 0 12.073c0 6.019 4.388 10.998 10.125 11.902v-8.42H7.078v-3.48h3.047V9.42c0-3.017 1.792-4.685 4.533-4.685 1.313 0 2.686.236 2.686.236v2.962H15.83c-1.49 0-1.956.93-1.956 1.885v2.257h3.328l-.532 3.48h-2.796v8.42C19.612 23.07 24 18.091 24 12.073Z" />
-    </svg>
-  );
-}
 
 function AuraIcon({ className, size = 24 }) {
   return (
@@ -54,7 +45,7 @@ function generateRandomUsername() {
   const nouns = ['aspirant', 'warrior', 'learner', 'solver', 'topper', 'scholar'];
   const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
   const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  const num = Math.floor(100000 + Math.random() * 899999); // Increased to 6 digits
+  const num = Math.floor(100000 + Math.random() * 899999);
   return `${adj}_${noun}_${num}`;
 }
 
@@ -75,56 +66,18 @@ export default function Signup() {
   const [formData, setFormData] = useState({
     identity: '',
     fullName: '',
-    username: generateRandomUsername(), // Pre-filled with random username
+    username: generateRandomUsername(),
     password: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [usernameStatus, setUsernameStatus] = useState('idle');
 
   const normalizedUsername = useMemo(() => normalizeUsername(formData.username), [formData.username]);
   const identityLooksLikeEmail = /\S+@\S+\.\S+/.test(formData.identity.trim());
   const identityLooksLikePhone = /^[+\d][\d\s-]{7,}$/.test(formData.identity.trim());
   const canContinueIdentity = identityLooksLikeEmail || identityLooksLikePhone;
-  const canContinueProfile = formData.fullName.trim().length >= 2 && (usernameStatus === 'available' || usernameStatus === 'error');
+  const canContinueProfile = formData.fullName.trim().length >= 2;
   const canSubmit = formData.password.trim().length >= 6 && !loading;
-
-  useEffect(() => {
-    let isActive = true;
-    if (step !== 2 || normalizedUsername.length < 3) {
-      setUsernameStatus('idle');
-      return undefined;
-    }
-
-    const timeoutId = setTimeout(async () => {
-      setUsernameStatus('checking');
-      try {
-        const usernameQuery = query(collection(db, 'users'), where('username', '==', normalizedUsername));
-        const snapshot = await getDocs(usernameQuery);
-        if (!isActive) return;
-        
-        if (snapshot.empty) {
-          setUsernameStatus('available');
-        } else {
-          setUsernameStatus('taken');
-          // Automatically regenerate if the generated username was taken
-          setTimeout(() => {
-            updateField('username', generateRandomUsername());
-          }, 1500);
-        }
-      } catch (checkError) {
-        if (isActive) {
-          console.warn("Username check failed, allowing optimistic availability:", checkError);
-          setUsernameStatus('error');
-        }
-      }
-    }, 500);
-
-    return () => {
-      isActive = false;
-      clearTimeout(timeoutId);
-    };
-  }, [normalizedUsername, step]);
 
   const updateField = (field, value) => {
     setError('');
@@ -132,12 +85,8 @@ export default function Signup() {
   };
 
   const handleNext = () => {
-    if (step === 1 && canContinueIdentity) {
-      setStep(2);
-    }
-    if (step === 2 && canContinueProfile) {
-      setStep(3);
-    }
+    if (step === 1 && canContinueIdentity) setStep(2);
+    if (step === 2 && canContinueProfile) setStep(3);
   };
 
   const handleBack = () => {
@@ -147,39 +96,14 @@ export default function Signup() {
 
   const handleSignup = async (event) => {
     event.preventDefault();
-    if (!canSubmit) {
-      return;
-    }
-
+    if (!canSubmit) return;
     setLoading(true);
     setError('');
-
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, formData.identity.trim(), formData.password);
-      
-      // Automatically send verification email
       await sendEmailVerification(userCredential.user);
-      
-      // Forcefully sign them out so they are not immediately authenticated
       await signOut(auth);
-
-      // Take them to the dedicated verification instruction screen
       navigate('/verify-email', { state: { email: formData.identity.trim() } });
-    } catch (signupError) {
-      setError(formatSignupError(signupError));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFacebookSignup = async () => {
-    setLoading(true);
-    setError('');
-
-    try {
-      const provider = new FacebookAuthProvider();
-      await signInWithPopup(auth, provider);
-      navigate('/profile-setup');
     } catch (signupError) {
       setError(formatSignupError(signupError));
     } finally {
@@ -252,11 +176,6 @@ export default function Signup() {
             Structured onboarding. Optimized for success.
           </p>
 
-          <button type="button" onClick={handleFacebookSignup} disabled={loading} className="authx-button authx-button--secondary">
-            <FacebookIcon className="h-5 w-5" />
-            <span>Log in with Facebook</span>
-          </button>
-
           <form onSubmit={handleSignup} className="authx-form" style={{ marginTop: '1.25rem' }}>
             <div className="authx-step-row">
               {steps.map(({ id, label }) => (
@@ -298,32 +217,8 @@ export default function Signup() {
                     autoComplete="name"
                   />
                 </label>
-
-                <label className="authx-field">
-                  <span>Username</span>
-                  <div className="authx-input-wrap">
-                    <input
-                      className="authx-input"
-                      type="text"
-                      value={formData.username}
-                      onChange={(event) => updateField('username', event.target.value)}
-                      placeholder="Choose a unique username"
-                      autoComplete="off"
-                    />
-                    <div style={{ paddingRight: '0.9rem', display: 'flex', alignItems: 'center' }} aria-live="polite">
-                      {usernameStatus === 'checking' ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                      {usernameStatus === 'available' ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : null}
-                      {usernameStatus === 'taken' ? <XCircle className="h-4 w-4 text-red-400" /> : null}
-                    </div>
-                  </div>
-                </label>
-
-                <p className={`authx-helper ${usernameStatus === 'available' ? 'is-ready' : ''}`}>
-                  {usernameStatus === 'available' && `@${normalizedUsername} is available.`}
-                  {usernameStatus === 'taken' && 'This username is already taken.'}
-                  {usernameStatus === 'checking' && 'Checking availability in Firestore...'}
-                  {usernameStatus === 'error' && 'Could not validate username availability.'}
-                  {(usernameStatus === 'idle' || !formData.username) && 'Use 3+ characters. Letters, numbers, dots, and underscores are allowed.'}
+                <p className="authx-helper">
+                  Use at least 2 characters for your full name.
                 </p>
               </>
             ) : null}
