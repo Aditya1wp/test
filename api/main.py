@@ -157,16 +157,16 @@ class Feedback(Base):
 # --- SCHEMAS ---
 class AnswerSubmit(BaseModel):
     question_id: int
-    selected_option: Optional[str] = None
+    selected_option: str | None = None
     time_spent_seconds: int
 
 class TestSubmit(BaseModel):
-    answers: List[AnswerSubmit]
+    answers: list[AnswerSubmit]
 
 class FeedbackRequest(BaseModel):
     subject: str
     comment: str
-    email: Optional[str] = None
+    email: str | None = None
 
 # --- UTILITIES ---
 def get_fallback_questions(section: str, count: int) -> list:
