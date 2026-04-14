@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FacebookAuthProvider, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { FacebookAuthProvider, signInWithEmailAndPassword, signInWithPopup, signOut } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { auth } from '../lib/firebase';
 import './AuthPages.css';
@@ -88,7 +88,15 @@ export default function Login() {
     setError('');
 
     try {
-      await signInWithEmailAndPassword(auth, identifier.trim(), password);
+      const userCredential = await signInWithEmailAndPassword(auth, identifier.trim(), password);
+      
+      // Verification check blocker
+      if (!userCredential.user.emailVerified) {
+        await signOut(auth); // DO NOT allow token persistence 
+        navigate('/verify-email', { state: { email: identifier.trim() } });
+        return;
+      }
+
       navigate('/home');
     } catch (authError) {
       setError(resolveAuthError(authError));

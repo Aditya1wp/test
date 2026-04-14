@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FacebookAuthProvider, createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { FacebookAuthProvider, createUserWithEmailAndPassword, signInWithPopup, sendEmailVerification, signOut } from 'firebase/auth';
 import { collection, doc, getDocs, query, setDoc, where } from 'firebase/firestore';
 import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, ShieldCheck, Smartphone, UserRound, XCircle } from 'lucide-react';
 import { auth, db } from '../lib/firebase';
@@ -156,17 +156,15 @@ export default function Signup() {
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, formData.identity.trim(), formData.password);
-      const firebaseUser = userCredential.user;
+      
+      // Automatically send verification email
+      await sendEmailVerification(userCredential.user);
+      
+      // Forcefully sign them out so they are not immediately authenticated
+      await signOut(auth);
 
-      await setDoc(doc(db, 'users', firebaseUser.uid), {
-        display_name: formData.fullName.trim(),
-        username: normalizedUsername,
-        email: formData.identity.trim(),
-        created_at: new Date().toISOString(),
-        profile_pic_url: 'https://placehold.co/160x160/121212/ffffff?text=%2B',
-      });
-
-      navigate('/profile-setup');
+      // Take them to the dedicated verification instruction screen
+      navigate('/verify-email', { state: { email: formData.identity.trim() } });
     } catch (signupError) {
       setError(formatSignupError(signupError));
     } finally {

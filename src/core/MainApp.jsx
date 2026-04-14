@@ -8,6 +8,7 @@ import Analysis from "@/pages/Analysis";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import ProfileSetup from "@/pages/ProfileSetup";
+import VerifyEmail from "@/pages/VerifyEmail";
 import InstallPrompt from "@/components/InstallPrompt";
 import { auth } from "@/lib/firebase.js";
 
@@ -89,6 +90,10 @@ function App() {
             <Route
               path="/signup"
               element={user ? <Navigate to="/home" replace /> : <Signup />}
+            />
+            <Route
+              path="/verify-email"
+              element={<VerifyEmail />}
             />
             <Route
               path="/profile-setup"
