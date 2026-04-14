@@ -351,7 +351,9 @@ app.post('/api/storage/google-drive/upload', upload.single('file'), async (req, 
     const response = await driveService.files.create({
       resource: fileMetadata,
       media: media,
-      fields: 'id, name, webViewLink, webContentLink'
+      fields: 'id, name, webViewLink, webContentLink',
+      supportsAllDrives: true,
+      supportsTeamDrives: true
     });
 
     console.log("File uploaded to Drive successfully:", response.data.id);
