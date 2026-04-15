@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase.js';
 import { Users, UserPlus, MessageCircle, CheckCircle2 } from 'lucide-react';
