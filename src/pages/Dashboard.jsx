@@ -255,8 +255,8 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
               <CheckCircle className="h-6 w-6" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Tests Completed</p>
-              <p className="text-2xl font-semibold">{stats.completed}</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-gray-400 tracking-wide uppercase">Tests Completed</p>
+              <p className="text-3xl font-black text-gray-900 dark:text-white">{stats.completed}</p>
             </div>
           </div>
         </div>
@@ -267,12 +267,12 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
                 <BarChart3 className="h-6 w-6" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Average Score</p>
-                <p className="text-2xl font-semibold">{stats.avgScore}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-400 tracking-wide uppercase">Average Score</p>
+                <p className="text-3xl font-black text-gray-900 dark:text-white">{stats.avgScore}</p>
               </div>
             </div>
-            <div className="p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg backdrop-blur-sm border border-main/50">
-              <BarChart3 className="h-6 w-6 opacity-40" />
+            <div className="p-2 bg-white dark:bg-gray-800/50 rounded-lg backdrop-blur-sm border-2 border-gray-100 dark:border-gray-700">
+              <BarChart3 className="h-6 w-6 text-gray-300 dark:opacity-40" />
             </div>
           </div>
         </div>
