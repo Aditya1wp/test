@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase.js';
-import { Users, UserPlus } from 'lucide-react';
+import { Users, UserPlus, MessageCircle, CheckCircle2 } from 'lucide-react';
 import Modal from './Modal';
+import ChatModal from './ChatModal';
 
-const TeamMembers = ({ uid }) => {
+const TeamMembers = ({ uid, userName }) => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({ name: '', role: '' });
 
@@ -54,12 +55,20 @@ const TeamMembers = ({ uid }) => {
             {members.length}
           </span>
         </h3>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="text-sm bg-purple-600 hover:bg-purple-700 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition flex items-center"
-        >
-          <UserPlus className="w-4 h-4 mr-1" /> Add Friend
-        </button>
+        <div className="flex space-x-2">
+          <button 
+            onClick={() => setIsChatOpen(true)}
+            className="text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-main font-medium py-1.5 px-3 rounded-lg shadow-sm transition flex items-center border border-main"
+          >
+            <MessageCircle className="w-4 h-4 mr-1.5 text-blue-500" /> Chat
+          </button>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="text-sm bg-purple-600 hover:bg-purple-700 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition flex items-center"
+          >
+            <UserPlus className="w-4 h-4 mr-1" /> Add Friend
+          </button>
+        </div>
       </div>
       
       <div className="flex-1 overflow-y-auto min-h-[300px] bg-panel">
@@ -76,7 +85,10 @@ const TeamMembers = ({ uid }) => {
                     {member.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-bold text-gray-900 dark:text-gray-100">{member.name}</p>
+                    <div className="flex items-center space-x-2">
+                      <p className="font-bold text-gray-900 dark:text-gray-100">{member.name}</p>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 animate-in fade-in slide-in-from-left-2 duration-700" title="Successfully added" />
+                    </div>
                     <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{member.role}</p>
                   </div>
                 </div>
@@ -97,6 +109,7 @@ const TeamMembers = ({ uid }) => {
         )}
       </div>
 
+      {isModalOpen && (
       {isModalOpen && (
         <Modal 
           isOpen={isModalOpen} 
@@ -130,6 +143,16 @@ const TeamMembers = ({ uid }) => {
             />
           </div>
         </Modal>
+      )}
+
+      {/* Focused Study Chat Modal */}
+      {isChatOpen && (
+        <ChatModal 
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          uid={uid}
+          userName={userName || 'Aspirant'}
+        />
       )}
     </div>
   );
