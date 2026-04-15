@@ -23,6 +23,7 @@ import MyNotes from '../components/MyNotes';
 import TeamMembers from '../components/TeamMembers';
 import MyFiles from '../components/MyFiles';
 import ProfileMenu from '../components/ProfileMenu';
+import InstallPrompt from '../components/InstallPrompt';
 
 const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
   const navigate = useNavigate();
