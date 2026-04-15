@@ -225,11 +225,11 @@ const TeamMembers = ({ uid, userName }) => {
             )}
 
             {/* Friends List Section */}
-            <ul className="divide-y divide-main">
+            <ul className="space-y-3 p-4">
               {members.map(member => (
-                <li key={member.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition flex items-center justify-between group">
+                <li key={member.id} className="p-3 bg-[#F1F5F9] dark:bg-gray-800 rounded-xl hover:bg-[#E2E8F0] dark:hover:bg-gray-700 transition flex items-center justify-between group">
                   <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold shadow-md overflow-hidden">
+                    <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold shadow-sm overflow-hidden">
                       {member.photoUrl ? (
                         <img src={member.photoUrl} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -238,14 +238,14 @@ const TeamMembers = ({ uid, userName }) => {
                     </div>
                     <div>
                       <div className="flex items-center space-x-2">
-                        <p className="font-bold text-gray-900 dark:text-gray-100">{member.name}</p>
-                        <UserCheck className="w-4 h-4 text-emerald-500" />
+                        <p className="text-base font-black text-black dark:text-white truncate max-w-[180px]">{member.name}</p>
                       </div>
-                      <p className="text-[10px] font-black text-blue-500 tracking-tighter uppercase">@{member.username || 'aspirant'}</p>
+                      <p className="text-[10px] font-bold text-blue-600 tracking-wider uppercase">@{member.username || 'aspirant'}</p>
                     </div>
                   </div>
-                  <div className="text-[10px] font-black uppercase text-gray-400 hidden md:block tracking-widest">
-                    Study Partner
+                  <div className="bg-white/50 dark:bg-gray-900/50 px-2.5 py-1 rounded-md text-[10px] font-black uppercase text-gray-500 flex items-center">
+                    <UserCheck className="w-3 h-3 text-emerald-500 mr-1" />
+                    Partner
                   </div>
                 </li>
               ))}
