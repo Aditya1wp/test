@@ -133,11 +133,11 @@ export default function ProfileMenu({ user, setUser, isPremium, expiryDate, onPr
             }}
             className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-bold transition-all ${
               isPremium 
-              ? 'text-violet-600 bg-violet-50 dark:bg-violet-900/20 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/40' 
-              : 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40'
+              ? 'text-blue-600 bg-blue-50 dark:bg-violet-900/20 dark:text-violet-400 hover:bg-blue-100 dark:hover:bg-violet-900/40' 
+              : 'text-blue-700 bg-blue-50/50 dark:bg-amber-900/20 dark:text-amber-400 hover:bg-blue-100 dark:hover:bg-amber-900/40'
             }`}
           >
-            <Crown className={`h-4 w-4 ${isPremium ? 'text-violet-500' : 'text-amber-500'}`} />
+            <Crown className={`h-4 w-4 ${isPremium ? 'text-blue-500 dark:text-violet-500' : 'text-blue-600 dark:text-amber-500'}`} />
             <span>{isPremium ? 'Premium Active' : 'Get Premium'}</span>
           </button>
 

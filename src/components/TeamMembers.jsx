@@ -47,26 +47,27 @@ const TeamMembers = ({ uid, userName }) => {
     setSearchError('');
     setSearchResult(null);
 
-    const normalized = searchQuery.trim().toLowerCase().replace('@', '');
+    const normalized = searchQuery.trim().toLowerCase();
     try {
-      const q = query(collection(db, 'users'), where('username', '==', normalized));
+      const q = query(collection(db, 'users'), where('email', '==', normalized));
       const snap = await getDocs(q);
       
       if (snap.empty) {
-        setSearchError('User not found.');
+        setSearchError('No student found with this email.');
       } else {
         const found = { id: snap.docs[0].id, ...snap.docs[0].data() };
         if (found.id === uid) {
           setSearchError("You can't add yourself.");
         } else if (members.some(m => m.id === found.id)) {
-          setSearchError('Already in your friends list.');
+          setSearchError('This student is already your friend.');
         } else {
           setSearchResult(found);
         }
       }
     } catch (err) {
       console.error("Search error:", err);
-      setSearchError('Search failed. Try again.');
+      // Show the specific error message to help the user diagnose (e.g. Permission Denied)
+      setSearchError(`Search failed: ${err.message || 'Check your internet connection'}`);
     } finally {
       setSearching(false);
     }
@@ -151,9 +152,9 @@ const TeamMembers = ({ uid, userName }) => {
     <div className="bg-panel rounded-xl shadow-sm border border-main overflow-hidden flex flex-col h-full">
       <div className="px-6 py-5 border-b border-main flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30">
         <h3 className="text-xl font-semibold flex items-center">
-          <Users className="w-5 h-5 mr-2 text-purple-500" />
+          <Users className="w-5 h-5 mr-2 text-blue-500" />
           Friends
-          <span className="ml-3 text-xs font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 px-2 py-0.5 rounded-full">
+          <span className="ml-3 text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full">
             {members.length}
           </span>
         </h3>
@@ -166,7 +167,7 @@ const TeamMembers = ({ uid, userName }) => {
           </button>
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="text-sm bg-purple-600 hover:bg-purple-700 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition flex items-center relative"
+            className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition flex items-center relative"
           >
             <UserPlus2 className="w-4 h-4 mr-1" /> Add Friend
             {requests.length > 0 && (
@@ -181,21 +182,21 @@ const TeamMembers = ({ uid, userName }) => {
       <div className="flex-1 overflow-y-auto min-h-[300px] bg-panel">
         {loading ? (
           <div className="flex justify-center items-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : (members.length > 0 || requests.length > 0) ? (
           <div className="divide-y divide-main">
             {/* Friend Requests Section */}
             {requests.length > 0 && (
-              <div className="p-3 bg-purple-50/50 dark:bg-purple-900/10 border-b border-main">
-                <p className="text-[10px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 mb-2 flex items-center">
+              <div className="p-3 bg-blue-50/50 dark:bg-blue-900/10 border-b border-main">
+                <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-2 flex items-center">
                   <Bell className="w-3 h-3 mr-1.5" /> Pending Invitations ({requests.length})
                 </p>
                 <div className="space-y-2">
                   {requests.map(req => (
-                    <div key={req.id} className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-sm border border-purple-100 dark:border-purple-800/50 flex items-center justify-between animate-in slide-in-from-right-2">
+                    <div key={req.id} className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-sm border border-blue-100 dark:border-blue-800/50 flex items-center justify-between animate-in slide-in-from-right-2">
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center font-bold text-purple-600 dark:text-purple-400 text-xs">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center font-bold text-blue-600 dark:text-blue-400 text-xs">
                           {req.senderName.charAt(0).toUpperCase()}
                         </div>
                         <div>
@@ -228,7 +229,7 @@ const TeamMembers = ({ uid, userName }) => {
               {members.map(member => (
                 <li key={member.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition flex items-center justify-between group">
                   <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-md overflow-hidden">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold shadow-md overflow-hidden">
                       {member.photoUrl ? (
                         <img src={member.photoUrl} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -240,7 +241,7 @@ const TeamMembers = ({ uid, userName }) => {
                         <p className="font-bold text-gray-900 dark:text-gray-100">{member.name}</p>
                         <UserCheck className="w-4 h-4 text-emerald-500" />
                       </div>
-                      <p className="text-[10px] font-black text-purple-500 tracking-tighter uppercase">@{member.username || 'aspirant'}</p>
+                      <p className="text-[10px] font-black text-blue-500 tracking-tighter uppercase">@{member.username || 'aspirant'}</p>
                     </div>
                   </div>
                   <div className="text-[10px] font-black uppercase text-gray-400 hidden md:block tracking-widest">
@@ -252,8 +253,8 @@ const TeamMembers = ({ uid, userName }) => {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 dark:text-gray-400 p-8">
-            <div className="w-16 h-16 bg-purple-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-              <Users className="w-8 h-8 text-purple-300 dark:text-gray-500" />
+            <div className="w-16 h-16 bg-blue-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+              <Users className="w-8 h-8 text-blue-300 dark:text-gray-500" />
             </div>
             <p className="mb-2">No friends yet.</p>
             <p className="text-sm opacity-70">Search for usernames to find partners.</p>
@@ -283,8 +284,8 @@ const TeamMembers = ({ uid, userName }) => {
                 <input 
                   type="text"
                   required
-                  placeholder="Enter username (e.g. nimcet_topper)"
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-main rounded-2xl focus:border-purple-500 outline-none transition text-sm font-bold"
+                  placeholder="Enter friend's email address"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-main rounded-2xl focus:border-blue-500 outline-none transition text-sm font-bold"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -293,7 +294,7 @@ const TeamMembers = ({ uid, userName }) => {
               <button 
                 type="submit"
                 disabled={searching}
-                className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-black text-sm shadow-lg shadow-purple-500/20 flex items-center justify-center"
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm shadow-lg shadow-blue-500/20 flex items-center justify-center"
               >
                 {searching ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Search Database'}
               </button>
@@ -307,20 +308,20 @@ const TeamMembers = ({ uid, userName }) => {
               )}
 
               {searchResult && (
-                <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-2xl border-2 border-purple-500/30 flex items-center justify-between animate-in slide-in-from-bottom-2">
+                <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-2xl border-2 border-blue-500/30 flex items-center justify-between animate-in slide-in-from-bottom-2">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center text-white font-black text-xl">
+                    <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-black text-xl">
                       {searchResult.display_name?.charAt(0) || searchResult.username?.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-sm font-black">{searchResult.display_name}</p>
-                      <p className="text-xs text-purple-500 font-bold uppercase tracking-tighter">@{searchResult.username}</p>
+                      <p className="text-sm font-black">{searchResult.display_name || 'Anonymous Student'}</p>
+                      <p className="text-xs text-blue-500 font-bold uppercase tracking-tighter truncate max-w-[150px]">{searchResult.email}</p>
                     </div>
                   </div>
                   <button 
                     onClick={sendRequest}
                     disabled={searching}
-                    className="p-2.5 bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400 rounded-xl hover:bg-purple-200 transition shadow-sm"
+                    className="p-2.5 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-200 transition shadow-sm"
                     title="Send Friend Request"
                   >
                     <UserPlus2 className="w-6 h-6" />

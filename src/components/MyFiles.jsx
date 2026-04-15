@@ -242,7 +242,7 @@ const MyFiles = ({ uid, isPremium }) => {
           My Files
           <span className={`ml-3 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center ${
             isPremium 
-              ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300' 
+              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' 
               : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
           }`}>
             {isPremium ? <Crown className="w-3 h-3 mr-1" /> : null}
@@ -260,7 +260,7 @@ const MyFiles = ({ uid, isPremium }) => {
           {isLimitReached ? (
             <button 
               onClick={() => setIsUpgradeModalOpen(true)}
-              className="text-xs bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold py-2 px-4 rounded-xl shadow-lg transition flex items-center"
+              className="text-xs bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-2 px-4 rounded-xl shadow-lg transition flex items-center"
             >
               <Crown className="w-4 h-4 mr-1.5" /> Upgrade to Pro
             </button>
@@ -492,7 +492,7 @@ const MyFiles = ({ uid, isPremium }) => {
         loading={saving}
       >
         <div className="space-y-6 text-center py-2">
-          <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center mx-auto text-violet-600 dark:text-violet-400">
+          <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto text-blue-600 dark:text-blue-400">
             <Crown className="w-8 h-8" />
           </div>
           

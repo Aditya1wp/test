@@ -201,11 +201,11 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
               onClick={() => setIsPremiumModalOpen(true)}
               className={`hidden sm:flex items-center space-x-2 px-4 py-2 rounded-xl border transition-all duration-300 font-bold text-xs ${
                 isPremium 
-                ? 'bg-violet-500/10 border-violet-500/30 text-violet-600 dark:text-violet-400 hover:bg-violet-500/20' 
-                : 'bg-gradient-to-r from-amber-500 to-orange-500 border-transparent text-white shadow-lg shadow-amber-500/20 hover:scale-105 active:scale-95'
+                ? 'bg-blue-50 border-blue-100 text-blue-600 dark:bg-blue-900/10 dark:text-blue-400 hover:bg-blue-100' 
+                : 'bg-gradient-to-r from-[#2563EB] to-[#6366F1] border-transparent text-white shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95'
               }`}
             >
-              <Crown className={`w-4 h-4 ${isPremium ? 'text-violet-500' : 'text-white'}`} />
+              <Crown className={`w-4 h-4 ${isPremium ? 'text-blue-500' : 'text-white'}`} />
               <span>{isPremium ? `Premium Active (until ${expiryDate})` : 'Go Premium'}</span>
             </button>
           )}
@@ -277,11 +277,11 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl p-6 text-white shadow-lg shadow-violet-500/30">
+        <div className="bg-gradient-to-br from-[#3B82F6] to-[#6366F1] rounded-xl p-6 text-white shadow-lg shadow-[#2563EB]/10 dark:shadow-violet-500/30 dark:from-violet-500 dark:to-violet-600">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-violet-100 text-sm font-medium mb-1 drop-shadow-sm">Time Spent</p>
-              <p className="text-2xl font-semibold">{stats.totalTime}</p>
+              <p className="text-blue-100 dark:text-violet-100 text-sm font-medium mb-1 drop-shadow-sm">Time Spent</p>
+              <p className="text-2xl font-bold">{stats.totalTime}</p>
             </div>
             <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
               <Clock className="h-6 w-6" />
@@ -387,9 +387,9 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
           </div>
 
           <div className="bg-panel rounded-xl shadow-sm border border-main overflow-hidden">
-            <div className="p-6 border-b border-main bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800">
-              <h3 className="text-lg font-bold flex items-center text-blue-800 dark:text-blue-300">
-                <MessageSquare className="w-5 h-5 mr-2" />
+            <div className="p-6 border-b border-main bg-gray-50/50 dark:from-gray-800 dark:to-gray-800">
+              <h3 className="text-lg font-bold flex items-center text-gray-900 dark:text-blue-300">
+                <MessageSquare className="w-5 h-5 mr-2 text-blue-600" />
                 Feedback & Support
               </h3>
             </div>
@@ -463,7 +463,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !processingPayment && setIsPremiumModalOpen(false)}></div>
           <div className="bg-panel w-full max-w-md rounded-3xl shadow-2xl relative border border-main overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="bg-gradient-to-br from-violet-600 to-indigo-700 p-8 text-white text-center relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#3B82F6] to-[#6366F1] dark:from-violet-600 dark:to-indigo-700 p-8 text-white text-center relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
               <Crown className="w-16 h-16 mx-auto mb-4 drop-shadow-lg" />
               <h2 className="text-3xl font-black mb-1">Upgrade to Premium</h2>
@@ -472,12 +472,12 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
 
             <div className="p-8 space-y-6">
               {isPremium ? (
-                <div className="bg-violet-50 dark:bg-violet-900/20 p-4 rounded-2xl border border-violet-100 dark:border-violet-800/50">
-                  <div className="flex items-start space-x-3 text-violet-700 dark:text-violet-300">
-                    <Calendar className="w-5 h-5 mt-0.5 shrink-0" />
+                <div className="bg-blue-50 dark:bg-violet-900/20 p-4 rounded-2xl border border-blue-100 dark:border-violet-800/50">
+                  <div className="flex items-start space-x-3 text-blue-700 dark:text-violet-300">
+                    <Calendar className="w-5 h-5 mt-0.5 shrink-0 text-blue-600 dark:text-violet-400" />
                     <div>
                       <p className="text-sm font-bold">Renewal Active</p>
-                      <p className="text-xs opacity-80">Your plan expires on {expiryDate}. You can extend it by 1 more year (365 days) today.</p>
+                      <p className="text-xs opacity-80 text-gray-700 dark:text-gray-300">Your plan expires on {expiryDate}. You can extend it by 1 more year (365 days) today.</p>
                     </div>
                   </div>
                 </div>

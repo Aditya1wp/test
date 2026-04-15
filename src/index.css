@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-exam-bg: #f3f4f6;
+  --color-exam-bg: #F8FAFC;
   --color-exam-panel: #ffffff;
-  --color-exam-primary: #2563eb;
+  --color-exam-primary: #2563EB;
   --color-exam-secondary: #475569;
   --color-exam-success: #22c55e;
   --color-exam-danger: #ef4444;
@@ -17,10 +17,13 @@
 }
 
 :root {
-  --app-bg: #f3f4f6;
-  --app-text: #111827;
-  --panel-bg: #ffffff;
-  --border-color: #e5e7eb;
+  --app-bg: #F8FAFC;
+  --app-text: #0F172A;
+  --panel-bg: #FFFFFF;
+  --border-color: #E2E8F0;
+  --secondary-text: #475569;
+  --muted-text: #94A3B8;
+  --card-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
 }
 
 :root.dark {
@@ -44,6 +47,7 @@ body {
 
 .bg-panel {
   background-color: var(--panel-bg);
+  box-shadow: var(--card-shadow);
 }
 
 .text-main {
@@ -59,14 +63,14 @@ body {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f1f1; 
+  background: var(--app-bg); 
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1; 
+  background: #E2E8F0; 
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8; 
+  background: var(--muted-text); 
 }
 
 /* --- PREMIUM SAAS DESIGN SYSTEM --- */
