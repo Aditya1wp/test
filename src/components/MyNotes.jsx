@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase.js';
-import { FileText, Plus, Trash2 } from 'lucide-react';
+import { FileText, Plus, Trash2, CheckCircle2 } from 'lucide-react';
 import Modal from './Modal';
 
 const MyNotes = ({ uid }) => {
@@ -10,6 +10,7 @@ const MyNotes = ({ uid }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({ title: '', content: '' });
+  const [toast, setToast] = useState({ visible: false, message: '' });
 
   useEffect(() => {
     if (!uid) return;
@@ -49,6 +50,8 @@ const MyNotes = ({ uid }) => {
     
     try {
       await deleteDoc(doc(db, `users/${uid}/notes`, noteId));
+      setToast({ visible: true, message: 'Note deleted successfully!' });
+      setTimeout(() => setToast({ visible: false, message: '' }), 3000);
     } catch (err) {
       console.error("Error deleting note: ", err);
       alert("Failed to delete note.");
@@ -56,7 +59,17 @@ const MyNotes = ({ uid }) => {
   };
 
   return (
-    <div className="bg-panel rounded-xl shadow-sm border border-main overflow-hidden flex flex-col h-full">
+    <div className="bg-panel rounded-xl shadow-sm border border-main overflow-hidden flex flex-col h-full relative">
+      {/* Toast Notification */}
+      {toast.visible && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[110] bg-emerald-500 text-white px-4 py-2 rounded-xl shadow-2xl flex items-center space-x-2 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="bg-white/20 p-1 rounded-lg">
+            <CheckCircle2 className="w-4 h-4" />
+          </div>
+          <span className="text-sm font-bold">{toast.message}</span>
+        </div>
+      )}
+
       <div className="px-6 py-5 border-b border-main flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30">
         <h3 className="text-xl font-semibold flex items-center">
           <FileText className="w-5 h-5 mr-2 text-blue-500" />

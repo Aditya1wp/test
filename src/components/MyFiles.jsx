@@ -18,6 +18,7 @@ const MyFiles = ({ uid, isPremium }) => {
   
   const [folderName, setFolderName] = useState('');
   const [fileData, setFileData] = useState({ file: null, folderId: '' });
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
 
   const fileInputRef = React.useRef(null);
 
@@ -43,6 +44,11 @@ const MyFiles = ({ uid, isPremium }) => {
       unsubscribeFiles();
     };
   }, [uid]);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ visible: true, message, type });
+    setTimeout(() => setToast({ visible: false, message: '', type: 'success' }), 3000);
+  };
 
   const FILE_LIMIT = 5;
   const isLimitReached = !isPremium && files.length >= FILE_LIMIT;
@@ -114,6 +120,7 @@ const MyFiles = ({ uid, isPremium }) => {
         setIsFileModalOpen(false);
         setFileData({ file: null, folderId: '' });
         setUploadProgress(0);
+        showToast(`"${file.name}" uploaded successfully!`);
       }, 500);
 
     } catch (err) {
@@ -169,6 +176,7 @@ const MyFiles = ({ uid, isPremium }) => {
 
       // 2. Delete from Firestore
       await deleteDoc(doc(db, `users/${uid}/files`, file.id));
+      showToast(`"${file.name}" deleted.`);
       
     } catch (err) {
       console.error("Delete Error:", err);
@@ -201,7 +209,19 @@ const MyFiles = ({ uid, isPremium }) => {
   };
 
   return (
-    <div className="bg-panel rounded-xl shadow-sm border border-main overflow-hidden flex flex-col h-full md:col-span-2">
+    <div className="bg-panel rounded-xl shadow-sm border border-main overflow-hidden flex flex-col h-full md:col-span-2 relative">
+      {/* Toast Notification */}
+      {toast.visible && (
+        <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-[110] px-4 py-2 rounded-xl shadow-2xl flex items-center space-x-2 animate-in fade-in slide-in-from-top-4 duration-300 ${
+          toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+        }`}>
+          <div className="bg-white/20 p-1 rounded-lg">
+            {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+          </div>
+          <span className="text-sm font-bold">{toast.message}</span>
+        </div>
+      )}
+
       <div className="px-6 py-5 border-b border-main flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30">
         <h3 className="text-xl font-semibold flex items-center">
           <Folder className="w-5 h-5 mr-2 text-yellow-500" />
