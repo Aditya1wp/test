@@ -12,7 +12,10 @@ const MyFiles = ({ uid, isPremium }) => {
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState('');
   
@@ -148,15 +151,22 @@ const MyFiles = ({ uid, isPremium }) => {
     document.body.removeChild(link);
   };
 
-  const handleDeleteFile = async (file) => {
-    if (!window.confirm(`Are you sure you want to delete "${file.name}"?`)) return;
+  const handleDeleteFile = (file) => {
+    setFileToDelete(file);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteFile = async () => {
+    if (!fileToDelete || deleting) return;
     
+    setDeleting(true);
     try {
+      const file = fileToDelete;
       // Support older field names for backward compatibility
       const publicId = file.storagePath || file.fileId || file.driveFileId;
       
       if (!publicId) {
-        throw new Error("Cloud Storage ID (publicId) not found for this file. It may have been uploaded with an old system.");
+        throw new Error("Cloud Storage ID not found. Manual deletion required.");
       }
 
       // 1. Delete from Cloudinary via Backend
@@ -171,16 +181,20 @@ const MyFiles = ({ uid, isPremium }) => {
       
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.error || "Failed to delete from Cloud storage");
+        throw new Error(errData.error || "Cloud storage deletion failed");
       }
 
       // 2. Delete from Firestore
       await deleteDoc(doc(db, `users/${uid}/files`, file.id));
-      showToast(`"${file.name}" deleted.`);
       
+      setIsDeleteModalOpen(false);
+      setFileToDelete(null);
+      showToast(`"${file.name}" deleted.`);
     } catch (err) {
       console.error("Delete Error:", err);
       alert(err.message || "Failed to delete file.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -509,6 +523,30 @@ const MyFiles = ({ uid, isPremium }) => {
           </button>
         </div>
       </Modal>
+
+      {/* Custom Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <Modal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          title="Delete File"
+          onSubmit={(e) => { e.preventDefault(); confirmDeleteFile(); }}
+          submitText="Delete From Cloud"
+          loading={deleting}
+        >
+          <div className="flex flex-col items-center text-center py-2">
+            <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center text-red-500 mb-4">
+              <AlertTriangle className="w-8 h-8" />
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Are you sure you want to delete <span className="font-bold text-gray-800 dark:text-gray-200">"{fileToDelete?.name}"</span>?
+            </p>
+            <p className="text-xs text-red-500/70 mt-3 font-medium">
+              This will permanently remove the file from Cloudinary storage and Firestore.
+            </p>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

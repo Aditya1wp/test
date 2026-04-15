@@ -487,6 +487,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
           </div>
         </div>
       )}
+      <InstallPrompt />
       </div>
     </div>
   );

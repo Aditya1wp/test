@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase.js';
-import { FileText, Plus, Trash2, CheckCircle2 } from 'lucide-react';
+import { FileText, Plus, Trash2, CheckCircle2, AlertTriangle } from 'lucide-react';
 import Modal from './Modal';
 
 const MyNotes = ({ uid }) => {
@@ -11,6 +11,9 @@ const MyNotes = ({ uid }) => {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({ title: '', content: '' });
   const [toast, setToast] = useState({ visible: false, message: '' });
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!uid) return;
@@ -45,16 +48,26 @@ const MyNotes = ({ uid }) => {
     }
   };
 
-  const handleDelete = async (noteId) => {
-    if (!window.confirm("Are you sure you want to delete this note?")) return;
+  const handleDelete = (note) => {
+    setNoteToDelete(note);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!noteToDelete || deleting) return;
     
+    setDeleting(true);
     try {
-      await deleteDoc(doc(db, `users/${uid}/notes`, noteId));
+      await deleteDoc(doc(db, `users/${uid}/notes`, noteToDelete.id));
+      setIsDeleteModalOpen(false);
+      setNoteToDelete(null);
       setToast({ visible: true, message: 'Note deleted successfully!' });
       setTimeout(() => setToast({ visible: false, message: '' }), 3000);
     } catch (err) {
       console.error("Error deleting note: ", err);
       alert("Failed to delete note.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -99,7 +112,7 @@ const MyNotes = ({ uid }) => {
                     <h4 className="font-bold text-gray-800 dark:text-gray-100 truncate">{note.title}</h4>
                   </div>
                   <button 
-                    onClick={() => handleDelete(note.id)}
+                    onClick={() => handleDelete(note)}
                     className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200"
                     title="Delete Note"
                   >
@@ -134,6 +147,7 @@ const MyNotes = ({ uid }) => {
           submitText="Save Note"
           loading={saving}
         >
+          {/* ... existing modal content ... */}
           <div>
             <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">Title</label>
             <input 
@@ -156,6 +170,27 @@ const MyNotes = ({ uid }) => {
               value={formData.content}
               onChange={(e) => setFormData({...formData, content: e.target.value})}
             ></textarea>
+          </div>
+        </Modal>
+      )}
+
+      {/* Custom Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <Modal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          title="Delete Note"
+          onSubmit={(e) => { e.preventDefault(); confirmDelete(); }}
+          submitText="Delete Permanently"
+          loading={deleting}
+        >
+          <div className="flex flex-col items-center text-center py-2">
+            <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center text-red-500 mb-4">
+              <AlertTriangle className="w-8 h-8" />
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Are you sure you want to delete <span className="font-bold text-gray-800 dark:text-gray-200">"{noteToDelete?.title}"</span>? This action cannot be undone.
+            </p>
           </div>
         </Modal>
       )}
