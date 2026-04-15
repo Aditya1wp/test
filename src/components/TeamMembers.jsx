@@ -149,12 +149,12 @@ const TeamMembers = ({ uid, userName }) => {
   };
 
   return (
-    <div className="bg-panel rounded-xl shadow-sm border border-main overflow-hidden flex flex-col h-full">
-      <div className="px-6 py-5 border-b border-main flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30">
-        <h3 className="text-xl font-semibold flex items-center">
-          <Users className="w-5 h-5 mr-2 text-blue-500" />
+    <div className="bg-panel rounded-3xl dark:rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm border border-main overflow-hidden flex flex-col h-full">
+      <div className="px-8 py-6 border-b border-main flex justify-between items-center bg-gray-50/30 dark:bg-gray-800/30">
+        <h3 className="text-xl font-black flex items-center text-gray-900 dark:text-gray-100 uppercase tracking-tight">
+          <Users className="w-6 h-6 mr-3 text-blue-500" />
           Friends
-          <span className="ml-3 text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full">
+          <span className="ml-3 text-[10px] font-black bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-3 py-1 rounded-md uppercase tracking-widest">
             {members.length}
           </span>
         </h3>

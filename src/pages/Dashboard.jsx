@@ -189,7 +189,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
 
   return (
     <div className="min-h-screen bg-panel transition-colors duration-300">
-      <header className="border-b border-main p-4 flex justify-between items-center sticky top-0 bg-panel z-50 shadow-sm">
+      <header className="max-w-7xl mx-auto mt-4 sm:mt-6 px-6 py-4 border border-main rounded-2xl sm:rounded-3xl flex justify-between items-center sticky top-4 bg-panel/80 backdrop-blur-xl z-[60] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none dark:bg-panel dark:mt-0 dark:rounded-none dark:max-w-none dark:px-4">
         <div className="flex items-center space-x-2">
           <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">N</div>
           <div className="text-xl font-black tracking-tight">NIMCET <span className="text-blue-600">MOCK</span></div>
@@ -237,19 +237,19 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">NIMCET Mock Dashboard</h1>
+        <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white uppercase">Dashboard</h1>
         <button 
           onClick={startTest}
           disabled={loading}
-          className={`${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white font-semibold py-2 px-6 rounded-lg flex items-center shadow-lg transition duration-200`}
+          className={`${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white font-black py-3 px-8 rounded-full flex items-center shadow-xl shadow-blue-500/20 transition-all hover:scale-105 active:scale-95 duration-200 text-sm uppercase tracking-wider`}
         >
           <PlayCircle className="mr-2 h-5 w-5" />
           {loading ? "Generating..." : "Start New Test"}
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-panel rounded-xl shadow-sm p-6 border border-main">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-8 lg:mb-12">
+        <div className="bg-panel border border-main rounded-3xl dark:rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm p-8 dark:p-6 lg:col-span-1 hover:-translate-y-1 transition-transform duration-300">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
               <CheckCircle className="h-6 w-6" />
@@ -260,7 +260,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
             </div>
           </div>
         </div>
-        <div className="bg-panel rounded-xl shadow-sm p-6 border border-main">
+        <div className="bg-panel border border-main rounded-3xl dark:rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm p-8 dark:p-6 lg:col-span-1 hover:-translate-y-1 transition-transform duration-300">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
               <div className="p-3 rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
@@ -277,7 +277,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-[#3B82F6] to-[#6366F1] rounded-xl p-6 text-white shadow-lg shadow-[#2563EB]/10 dark:shadow-violet-500/30 dark:from-violet-500 dark:to-violet-600">
+        <div className="bg-gradient-to-br from-[#3B82F6] to-[#6366F1] text-white dark:from-violet-500 dark:to-violet-600 rounded-3xl dark:rounded-xl shadow-[0_8px_30px_rgb(59,130,246,0.15)] dark:shadow-violet-500/30 p-8 dark:p-6 lg:col-span-2 flex flex-col justify-center hover:-translate-y-1 transition-transform duration-300">
           <div className="flex justify-between items-start">
             <div>
               <p className="text-blue-100 dark:text-violet-100 text-sm font-medium mb-1 drop-shadow-sm">Time Spent</p>
@@ -310,10 +310,10 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
         </div>
 
         {/* Row 3: History & Feedback */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 bg-panel rounded-xl shadow-sm border border-main overflow-hidden h-fit">
-        <div className="px-6 py-5 border-b border-main flex justify-between items-center">
-          <h3 className="text-xl font-semibold">Recent Test History</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="lg:col-span-2 bg-panel rounded-3xl dark:rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm border border-main overflow-hidden h-fit">
+        <div className="px-8 py-6 border-b border-main flex justify-between items-center">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 uppercase tracking-tight">Recent Test History</h3>
         </div>
         <div className="overflow-x-auto">
           {history.length > 0 ? (
@@ -367,8 +367,8 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
           )}
         </div>
           </div>
-        <div className="space-y-6">
-          <div className="bg-panel rounded-xl shadow-sm border border-main p-6 text-center">
+        <div className="space-y-8">
+          <div className="bg-panel rounded-3xl dark:rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm border border-main p-8 dark:p-6 text-center">
             <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-500">
               <PlayCircle className="w-8 h-8" />
             </div>
@@ -386,11 +386,11 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
             </button>
           </div>
 
-          <div className="bg-panel rounded-xl shadow-sm border border-main overflow-hidden">
-            <div className="p-6 border-b border-main bg-gray-50/50 dark:from-gray-800 dark:to-gray-800">
-              <h3 className="text-lg font-bold flex items-center text-gray-900 dark:text-blue-300">
-                <MessageSquare className="w-5 h-5 mr-2 text-blue-600" />
-                Feedback & Support
+          <div className="bg-panel rounded-3xl dark:rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm border border-main overflow-hidden">
+            <div className="p-8 dark:p-6 border-b border-main bg-gray-50/30 dark:from-gray-800 dark:to-gray-800">
+              <h3 className="text-xl font-black flex items-center text-gray-900 dark:text-blue-300 uppercase tracking-tight">
+                <MessageSquare className="w-6 h-6 mr-3 text-blue-600" />
+                Feedback
               </h3>
             </div>
             
@@ -416,7 +416,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
                 }
                 setSubmittingFeedback(false);
               }}
-              className="p-6 space-y-4"
+              className="p-8 dark:p-6 space-y-6"
             >
               <div>
                 <label className="block text-sm font-medium mb-1">Subject</label>

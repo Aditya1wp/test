@@ -43,8 +43,8 @@ class ErrorBoundary extends React.Component {
 
 function App() {
   const [isDark, setIsDark] = useState(() => {
-    const savedTheme = localStorage.getItem("theme");
-    return savedTheme !== null ? savedTheme === "dark" : true; // Default to dark mode
+    localStorage.setItem("theme", "dark");
+    return true; 
   });
   const toggleTheme = () => setIsDark(!isDark);
 

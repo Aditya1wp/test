@@ -72,7 +72,7 @@ const MyNotes = ({ uid }) => {
   };
 
   return (
-    <div className="bg-panel rounded-xl shadow-sm border border-main overflow-hidden flex flex-col h-full relative">
+    <div className="bg-panel rounded-3xl dark:rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-sm border border-main overflow-hidden flex flex-col h-full relative">
       {/* Toast Notification */}
       {toast.visible && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[110] bg-emerald-500 text-white px-4 py-2 rounded-xl shadow-2xl flex items-center space-x-2 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -83,11 +83,11 @@ const MyNotes = ({ uid }) => {
         </div>
       )}
 
-      <div className="px-6 py-5 border-b border-main flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30">
-        <h3 className="text-xl font-semibold flex items-center">
-          <FileText className="w-5 h-5 mr-2 text-blue-500" />
+      <div className="px-8 py-6 border-b border-main flex justify-between items-center bg-gray-50/30 dark:bg-gray-800/30">
+        <h3 className="text-xl font-black flex items-center text-gray-900 dark:text-gray-100 uppercase tracking-tight">
+          <FileText className="w-6 h-6 mr-3 text-blue-500" />
           My Notes
-          <span className="ml-3 text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full">
+          <span className="ml-3 text-[10px] font-black bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 px-3 py-1 rounded-md uppercase tracking-widest">
             {notes.length}
           </span>
         </h3>
@@ -99,7 +99,7 @@ const MyNotes = ({ uid }) => {
         </button>
       </div>
       
-      <div className="p-6 flex-1 overflow-y-auto min-h-[300px] bg-panel">
+      <div className="p-8 flex-1 overflow-y-auto min-h-[300px] bg-panel">
         {loading ? (
           <div className="flex justify-center items-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
