@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase.js';
-import { Folder, FileText, ExternalLink, UploadCloud, FolderPlus, Download, Trash2, XCircle, Loader2 } from 'lucide-react';
+import { Folder, FileText, ExternalLink, UploadCloud, FolderPlus, Download, Trash2, XCircle, Loader2, Crown, AlertTriangle, Smartphone } from 'lucide-react';
 import Modal from './Modal';
 
 const MyFiles = ({ uid }) => {
   const [folders, setFolders] = useState([]);
   const [files, setFiles] = useState([]);
+  const [plan, setPlan] = useState('free');
   const [loading, setLoading] = useState(true);
   
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState('');
@@ -23,6 +25,15 @@ const MyFiles = ({ uid }) => {
   useEffect(() => {
     if (!uid) return;
     
+    // Listen for user plan status
+    const userRef = doc(db, 'users', uid);
+    const unsubscribePlan = onSnapshot(userRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        setPlan(userData.plan || 'free');
+      }
+    });
+
     const foldersQ = query(collection(db, `users/${uid}/folders`), orderBy('createdAt', 'desc'));
     const unsubscribeFolders = onSnapshot(foldersQ, (snapshot) => {
       setFolders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -38,10 +49,14 @@ const MyFiles = ({ uid }) => {
     });
 
     return () => {
+      unsubscribePlan();
       unsubscribeFolders();
       unsubscribeFiles();
     };
   }, [uid]);
+
+  const FILE_LIMIT = 5;
+  const isLimitReached = plan === 'free' && files.length >= FILE_LIMIT;
 
   const handleCreateFolder = async (e) => {
     e.preventDefault();
@@ -172,6 +187,22 @@ const MyFiles = ({ uid }) => {
     }
   };
 
+  const handleUpgrade = async () => {
+    if (!uid) return;
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, 'users', uid), {
+        plan: 'pro'
+      });
+      setIsUpgradeModalOpen(false);
+    } catch (err) {
+      console.error("Upgrade Error:", err);
+      alert("Failed to upgrade. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const formatSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -186,25 +217,49 @@ const MyFiles = ({ uid }) => {
         <h3 className="text-xl font-semibold flex items-center">
           <Folder className="w-5 h-5 mr-2 text-yellow-500" />
           My Files
-          <span className="ml-3 text-xs font-bold bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 px-2 py-0.5 rounded-full">
-            {folders.length} Folders, {files.length} Files
+          <span className={`ml-3 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center ${
+            plan === 'pro' 
+              ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300' 
+              : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+          }`}>
+            {plan === 'pro' ? <Crown className="w-3 h-3 mr-1" /> : null}
+            {plan === 'pro' ? 'Pro Plan' : `Free (Limit: ${files.length}/${FILE_LIMIT})`}
           </span>
         </h3>
         <div className="flex space-x-2">
           <button 
             onClick={() => setIsFolderModalOpen(true)}
-            className="text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium py-1.5 px-3 rounded-lg shadow-sm transition flex items-center"
+            className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold py-2 px-3 rounded-xl shadow-sm transition flex items-center"
           >
-            <FolderPlus className="w-4 h-4 mr-1" /> New Folder
+            <FolderPlus className="w-4 h-4 mr-1.5" /> New Folder
           </button>
-          <button 
-            onClick={() => setIsFileModalOpen(true)}
-            className="text-sm bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition flex items-center"
-          >
-            <UploadCloud className="w-4 h-4 mr-1" /> Add File
-          </button>
+          
+          {isLimitReached ? (
+            <button 
+              onClick={() => setIsUpgradeModalOpen(true)}
+              className="text-xs bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold py-2 px-4 rounded-xl shadow-lg transition flex items-center"
+            >
+              <Crown className="w-4 h-4 mr-1.5" /> Upgrade to Pro
+            </button>
+          ) : (
+            <button 
+              onClick={() => setIsFileModalOpen(true)}
+              className="text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl shadow-lg transition flex items-center"
+            >
+              <UploadCloud className="w-4 h-4 mr-1.5" /> Add File
+            </button>
+          )}
         </div>
       </div>
+
+      {isLimitReached && (
+        <div className="bg-amber-50 dark:bg-amber-900/10 border-b border-amber-100 dark:border-amber-900/20 px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center text-amber-700 dark:text-amber-400 text-xs font-medium">
+            <AlertTriangle className="w-4 h-4 mr-2" />
+            You’ve reached the free plan limit (5 files). Please upgrade or delete files to add more.
+          </div>
+        </div>
+      )}
       
       <div className="p-6 flex-1 overflow-y-auto min-h-[300px] bg-panel">
         {loading ? (
@@ -394,6 +449,48 @@ const MyFiles = ({ uid }) => {
               </div>
             </div>
           )}
+        </div>
+      </Modal>
+
+      {/* Upgrade Plan Modal */}
+      <Modal 
+        isOpen={isUpgradeModalOpen} 
+        onClose={() => !saving && setIsUpgradeModalOpen(false)} 
+        title="Upgrade your plan"
+        onSubmit={(e) => { e.preventDefault(); handleUpgrade(); }}
+        submitText={saving ? "Upgrading..." : "I've Paid - Confirm"}
+        loading={saving}
+      >
+        <div className="space-y-6 text-center py-2">
+          <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center mx-auto text-violet-600 dark:text-violet-400">
+            <Crown className="w-8 h-8" />
+          </div>
+          
+          <div className="space-y-2">
+            <h3 className="text-xl font-black">Go Unlimited</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Unlock unlimited file uploads, folders, and premium features for your mock exam journey.
+            </p>
+          </div>
+
+          <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Pay via UPI</p>
+            <div className="flex items-center justify-center space-x-3 text-lg font-black text-blue-600 dark:text-blue-400">
+              <Smartphone className="w-5 h-5" />
+              <span>adityagaurav1122@okhdfcbank</span>
+            </div>
+            <p className="mt-4 text-xs text-gray-400">
+              Scan our code or use the ID above. After payment, click the button below to activate your Pro plan instantly.
+            </p>
+          </div>
+
+          <button 
+            type="button"
+            onClick={() => setIsUpgradeModalOpen(false)}
+            className="text-sm font-bold text-gray-400 hover:text-gray-600 transition"
+          >
+            Maybe later
+          </button>
         </div>
       </Modal>
     </div>
