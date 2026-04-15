@@ -66,11 +66,11 @@ const MyFiles = ({ uid }) => {
     try {
       const file = fileData.file;
       
-      // We use the new backend endpoint for Google Drive
+      // We use the new backend endpoint for Cloudinary
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await fetch('/api/storage/google-drive/upload', {
+      const response = await fetch('/api/storage/upload', {
         method: 'POST',
         body: formData
       });
@@ -78,7 +78,7 @@ const MyFiles = ({ uid }) => {
       const result = await response.json();
       
       if (!response.ok) {
-        throw new Error(result.error || "Failed to upload to Google Drive");
+        throw new Error(result.error || "Failed to upload to Cloudinary");
       }
 
       // Save the metadata to Firestore so it shows up in the 'My Files' list
@@ -87,9 +87,10 @@ const MyFiles = ({ uid }) => {
         folderId: fileData.folderId || null,
         size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
         mimeType: file.type || 'application/octet-stream',
-        driveFileId: result.fileId,
-        driveWebViewLink: result.url,
-        driveWebContentLink: result.downloadUrl,
+        // Cloudinary specific metadata
+        fileId: result.fileId,
+        url: result.url,
+        provider: 'cloudinary',
         createdAt: serverTimestamp(),
       });
       
@@ -98,8 +99,8 @@ const MyFiles = ({ uid }) => {
     } catch (err) {
       console.error("Error adding file: ", err);
       // Give the user a clear hint if the backend isn't set up yet
-      if (err.message.includes("GOOGLE_SERVICE_ACCOUNT_JSON")) {
-         alert("Backend Error: Please make sure you have added your GOOGLE_SERVICE_ACCOUNT_JSON to Vercel environment variables.");
+      if (err.message.includes("CLOUDINARY_API_KEY")) {
+         alert("Backend Error: Please make sure you have added your CLOUDINARY_API_KEY and API_SECRET to environment variables.");
       } else {
          alert(err.message || "Failed to add file.");
       }
@@ -177,9 +178,9 @@ const MyFiles = ({ uid }) => {
                           </div>
                         </div>
                         <div className="flex items-center gap-3 ml-4">
-                          {file.driveWebViewLink ? (
+                          {(file.url || file.driveWebViewLink) ? (
                             <a
-                              href={file.driveWebViewLink}
+                              href={file.url || file.driveWebViewLink}
                               target="_blank"
                               rel="noreferrer"
                               className="inline-flex items-center text-xs font-semibold text-blue-600 dark:text-blue-400"

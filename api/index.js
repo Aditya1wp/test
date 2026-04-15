@@ -5,7 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
-import { google } from 'googleapis';
+import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -15,42 +15,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --- GOOGLE DRIVE SETUP ---
+// --- CLOUDINARY SETUP ---
 const upload = multer({ 
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit for Cloudinary
 });
 
-const getDriveService = () => {
-  try {
-    const clientId = (process.env.GOOGLE_CLIENT_ID || "").trim();
-    const clientSecret = (process.env.GOOGLE_CLIENT_SECRET || "").trim();
-    const refreshToken = (process.env.GOOGLE_REFRESH_TOKEN || "").trim();
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "dago0a24o",
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-    if (!clientId || !clientSecret || !refreshToken) {
-      console.error("DEBUG: Missing Google OAuth Credentials:", { 
-        hasId: !!clientId, 
-        hasSecret: !!clientSecret, 
-        hasToken: !!refreshToken 
-      });
-      return null;
-    }
-
-    const auth = new google.auth.OAuth2(
-      clientId, 
-      clientSecret, 
-      "https://developers.google.com/oauthplayground"
-    );
-    
-    auth.setCredentials({ refresh_token: refreshToken });
-    
-    console.log("DEBUG: Google Drive OAuth2 Client initialized (ID ends with ...%s)", clientId.slice(-10));
-    return google.drive({ version: 'v3', auth });
-  } catch (err) {
-    console.error("CRITICAL: Failed to initialize Google Drive Service:", err.message);
-    return null;
-  }
-};
+console.log("DEBUG: Cloudinary initialized with cloud_name:", process.env.CLOUDINARY_CLOUD_NAME || "dago0a24o");
 
 // --- DATABASE SETUP ---
 const dbPath = process.env.VERCEL ? '/tmp/nimcet.db' : path.join(__dirname, 'nimcet.db');
@@ -325,66 +302,44 @@ app.get('/api/history', async (req, res) => {
   }
 });
 
-// --- GOOGLE DRIVE UPLOAD ROUTE ---
-app.post('/api/storage/google-drive/upload', upload.single('file'), async (req, res) => {
+// --- CLOUDINARY UPLOAD ROUTE ---
+app.post('/api/storage/upload', upload.single('file'), async (req, res) => {
   try {
-    const driveService = getDriveService();
-    if (!driveService) {
-      return res.status(500).json({ error: "Google Drive not configured. Add GOOGLE_SERVICE_ACCOUNT_JSON to environment variables." });
-    }
-
     const { file } = req;
     if (!file) return res.status(400).json({ error: "No file provided" });
 
-    const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID; // Optional folder ID
-
-    const fileMetadata = {
-      name: file.originalname,
-      parents: folderId ? [folderId] : []
-    };
-
-    const media = {
-      mimeType: file.mimetype,
-      body: Readable.from(file.buffer)
-    };
-
-    const response = await driveService.files.create({
-      resource: fileMetadata,
-      media: media,
-      fields: 'id, name, webViewLink, webContentLink',
-      supportsAllDrives: true,
-      supportsTeamDrives: true
-    });
-
-    console.log("File uploaded to Drive successfully:", response.data.id);
-
-    // Share file publicly
-    try {
-      await driveService.permissions.create({
-        fileId: response.data.id,
-        requestBody: {
-          role: 'reader',
-          type: 'anyone',
-        },
+    // Using a stream to upload the buffer to Cloudinary
+    const uploadFromBuffer = (fileBuffer) => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { 
+            folder: "nimcet_vault",
+            resource_type: "auto"
+          },
+          (error, result) => {
+            if (result) resolve(result);
+            else reject(error);
+          }
+        );
+        Readable.from(fileBuffer).pipe(stream);
       });
-    } catch (permErr) {
-      console.warn("Could not set public permissions, but file was uploaded:", permErr.message);
-    }
+    };
+
+    const result = await uploadFromBuffer(file.buffer);
+
+    console.log("File uploaded to Cloudinary successfully:", result.public_id);
 
     res.json({
       success: true,
-      fileId: response.data.id,
-      name: response.data.name,
-      url: response.data.webViewLink,
-      downloadUrl: response.data.webContentLink
+      fileId: result.public_id,
+      name: file.originalname,
+      url: result.secure_url,
+      format: result.format,
+      bytes: result.bytes
     });
   } catch (err) {
-    console.error("GOOGLE DRIVE UPLOAD FAILURE:");
-    console.error(" - Message:", err.message);
-    if (err.response) {
-      console.error(" - Google Data:", err.response.data);
-    }
-    res.status(500).json({ error: err.message || "Unknown Google Drive error" });
+    console.error("CLOUDINARY UPLOAD FAILURE:", err.message);
+    res.status(500).json({ error: err.message || "Unknown Cloudinary error" });
   }
 });
 
