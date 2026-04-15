@@ -121,10 +121,14 @@ const MyFiles = ({ uid }) => {
   };
 
   const handleDownload = (file) => {
-    if (!file.downloadURL) return;
+    const url = file.downloadURL || file.url || file.driveWebViewLink;
+    if (!url) {
+      alert("Download URL not found for this file.");
+      return;
+    }
     // Safely trigger download in a new tab
     const link = document.createElement('a');
-    link.href = file.downloadURL;
+    link.href = url;
     link.target = '_blank';
     link.rel = 'noreferrer';
     link.download = file.name;
@@ -137,13 +141,20 @@ const MyFiles = ({ uid }) => {
     if (!window.confirm(`Are you sure you want to delete "${file.name}"?`)) return;
     
     try {
+      // Support older field names for backward compatibility
+      const publicId = file.storagePath || file.fileId || file.driveFileId;
+      
+      if (!publicId) {
+        throw new Error("Cloud Storage ID (publicId) not found for this file. It may have been uploaded with an old system.");
+      }
+
       // 1. Delete from Cloudinary via Backend
       const response = await fetch('/api/storage/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          publicId: file.storagePath,
-          resourceType: file.type === 'image' ? 'image' : 'raw' // Simplified but effective
+          publicId: publicId,
+          resourceType: file.type === 'image' || file.mimeType?.startsWith('image') ? 'image' : 'raw'
         })
       });
       
