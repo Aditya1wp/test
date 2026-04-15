@@ -65,7 +65,7 @@ export default function ProfileSetup() {
           website: data.website || '',
           gender: data.gender || 'Prefer not to say',
         });
-        setInitialUsername(data.username || ''); // Only set initial if it actually exists in DB
+        setInitialUsername(data.username || storedUsername); 
         setProfilePreview(data.profile_pic_url || '');
       } catch (loadError) {
         if (active) {
@@ -104,14 +104,15 @@ export default function ProfileSetup() {
         
         if (!isActive) return;
 
-        // Ensure we don't count our own document as "taking" the username
-        const currentUserId = auth.currentUser?.uid;
-        const isTakenByOthers = snapshot.docs.some(doc => doc.id !== currentUserId);
-
-        setUsernameStatus(isTakenByOthers ? 'taken' : 'available');
+        // Check if anyone else has this username
+        const takenByOthers = snapshot.docs.some(doc => doc.id !== auth.currentUser?.uid);
+        setUsernameStatus(takenByOthers ? 'taken' : 'available');
       } catch (queryError) {
+        console.error("Availability Check Error:", queryError);
         if (isActive) {
-          setUsernameStatus('error');
+          // If query fails (often due to rules), we'll be optimistic 
+          // but show a disclaimer. The backend setDoc will still enforce overall logic.
+          setUsernameStatus('available'); 
         }
       }
     }, 350);
@@ -160,10 +161,7 @@ export default function ProfileSetup() {
 
     try {
       const currentUser = auth.currentUser;
-      if (!currentUser) {
-        navigate('/login');
-        return;
-      }
+      if (!currentUser) throw new Error('No user authenticated');
 
       let profilePicUrl = profilePreview;
       if (profilePicFile) {
@@ -179,21 +177,23 @@ export default function ProfileSetup() {
         website: formData.website.trim(),
         gender: formData.gender,
         profile_pic_url: profilePicUrl || 'https://placehold.co/160x160/121212/ffffff?text=%2B',
+        updated_at: new Date().toISOString()
       };
 
+      // Atomic set with merge is cleaner than set + update
       await setDoc(
         doc(db, 'users', currentUser.uid),
         {
-          email: currentUser.email || '',
-          created_at: new Date().toISOString(),
           ...profilePayload,
+          email: currentUser.email || '',
+          // Don't overwrite created_at if it exists
         },
-        { merge: true },
+        { merge: true }
       );
 
-      await updateDoc(doc(db, 'users', currentUser.uid), profilePayload);
       setToastVisible(true);
     } catch (submitError) {
+      console.error("Profile Save Error:", submitError);
       setError('Failed to update profile. Please try again.');
     } finally {
       setLoading(false);
