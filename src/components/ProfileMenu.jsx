@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings, Crown } from 'lucide-react';
 import { auth, db } from '../lib/firebase';
 
 function getInitial(name, email) {
@@ -14,7 +14,7 @@ function isPlaceholder(url) {
   return !url || url.includes('placehold.co') || url.includes('text=%2B');
 }
 
-export default function ProfileMenu({ user, setUser }) {
+export default function ProfileMenu({ user, setUser, isPremium, expiryDate, onPremiumClick }) {
   const navigate = useNavigate();
   const menuRef = useRef(null);
   const [open, setOpen] = useState(false);
@@ -123,6 +123,22 @@ export default function ProfileMenu({ user, setUser }) {
           >
             <Settings className="h-4 w-4" />
             <span>Setting</span>
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onPremiumClick();
+            }}
+            className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-bold transition-all ${
+              isPremium 
+              ? 'text-violet-600 bg-violet-50 dark:bg-violet-900/20 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/40' 
+              : 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40'
+            }`}
+          >
+            <Crown className={`h-4 w-4 ${isPremium ? 'text-violet-500' : 'text-amber-500'}`} />
+            <span>{isPremium ? 'Premium Active' : 'Get Premium'}</span>
           </button>
 
           <button
