@@ -173,7 +173,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
           {user && (
             <div className="hidden md:block text-right mr-2">
               <div className="text-xs font-bold opacity-60 uppercase tracking-widest">Aspirant</div>
-              <div className="text-sm font-black">{profile?.username ? `@${profile.username}` : (user.displayName || user.email)}</div>
+              <div className="text-sm font-black">{profile?.display_name || user.displayName || user.email}</div>
             </div>
           )}
           <button 

@@ -175,8 +175,7 @@ export default function ProfileSetup() {
         username: normalizedUsername,
         bio: formData.bio.trim(),
         website: formData.website.trim(),
-        gender: formData.gender,
-        profile_pic_url: profilePicUrl || 'https://placehold.co/160x160/121212/ffffff?text=%2B',
+        profile_pic_url: profilePicUrl || '',
         updated_at: new Date().toISOString()
       };
 
@@ -243,7 +242,7 @@ export default function ProfileSetup() {
               </label>
               <div className="profile-avatar-copy">
                 <h2>{formData.fullName || 'Your profile'}</h2>
-                <p>{normalizedUsername ? `@${normalizedUsername}` : 'Add a recognizable profile for your mock journey.'}</p>
+                <p>{formData.fullName ? `${formData.fullName}` : 'Add a recognizable profile for your mock journey.'}</p>
                 <button type="button" className="profile-photo-link">
                   Change Profile Photo
                 </button>
