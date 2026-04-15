@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase.js';
-import { FileText, Plus } from 'lucide-react';
+import { FileText, Plus, Trash2 } from 'lucide-react';
 import Modal from './Modal';
 
 const MyNotes = ({ uid }) => {
@@ -44,6 +44,17 @@ const MyNotes = ({ uid }) => {
     }
   };
 
+  const handleDelete = async (noteId) => {
+    if (!window.confirm("Are you sure you want to delete this note?")) return;
+    
+    try {
+      await deleteDoc(doc(db, `users/${uid}/notes`, noteId));
+    } catch (err) {
+      console.error("Error deleting note: ", err);
+      alert("Failed to delete note.");
+    }
+  };
+
   return (
     <div className="bg-panel rounded-xl shadow-sm border border-main overflow-hidden flex flex-col h-full">
       <div className="px-6 py-5 border-b border-main flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30">
@@ -69,17 +80,26 @@ const MyNotes = ({ uid }) => {
           </div>
         ) : notes.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {notes.map(note => (
-              <div key={note.id} className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4 rounded-xl shadow-sm hover:shadow-md transition group">
-                <h4 className="font-bold text-gray-800 dark:text-gray-100 mb-2 truncate">{note.title}</h4>
-                <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 mb-4">
-                  {note.content || <span className="italic opacity-50">No content</span>}
-                </p>
-                <div className="text-xs text-gray-400 font-medium">
-                  {note.createdAt?.toDate ? new Date(note.createdAt.toDate()).toLocaleDateString() : 'Just now'}
+              {notes.map(note => (
+                <div key={note.id} className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4 rounded-xl shadow-sm hover:shadow-md transition group relative">
+                  <div className="flex justify-between items-start mb-2 pr-6">
+                    <h4 className="font-bold text-gray-800 dark:text-gray-100 truncate">{note.title}</h4>
+                  </div>
+                  <button 
+                    onClick={() => handleDelete(note.id)}
+                    className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200"
+                    title="Delete Note"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 mb-4">
+                    {note.content || <span className="italic opacity-50">No content</span>}
+                  </p>
+                  <div className="text-xs text-gray-400 font-medium pt-3 border-t border-gray-50 dark:border-gray-700/50">
+                    {note.createdAt?.toDate ? new Date(note.createdAt.toDate()).toLocaleDateString() : 'Just now'}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 dark:text-gray-400 p-8">
