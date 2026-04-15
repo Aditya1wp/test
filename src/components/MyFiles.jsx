@@ -354,8 +354,8 @@ const MyFiles = ({ uid, isPremium }) => {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 dark:text-gray-400 p-8">
-            <div className="w-16 h-16 bg-yellow-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-              <Folder className="w-8 h-8 text-yellow-300 dark:text-gray-500" />
+            <div className="w-16 h-16 bg-white border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4 shadow-sm">
+              <Folder className="w-8 h-8 text-yellow-400 dark:text-gray-500" />
             </div>
             <p className="mb-2">Your vault is empty.</p>
             <p className="text-sm opacity-70">Add files and folders to keep your resources organized.</p>

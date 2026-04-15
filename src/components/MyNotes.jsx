@@ -129,8 +129,8 @@ const MyNotes = ({ uid }) => {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 dark:text-gray-400 p-8">
-            <div className="w-16 h-16 bg-blue-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-              <FileText className="w-8 h-8 text-blue-300 dark:text-gray-500" />
+            <div className="w-16 h-16 bg-white border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4 shadow-sm">
+              <FileText className="w-8 h-8 text-blue-400 dark:text-gray-500" />
             </div>
             <p className="mb-2">No notes yet.</p>
             <p className="text-sm opacity-70">Capture your brilliant ideas here.</p>

@@ -161,9 +161,9 @@ const TeamMembers = ({ uid, userName }) => {
         <div className="flex space-x-2">
           <button 
             onClick={() => setIsChatOpen(true)}
-            className="text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-main font-medium py-1.5 px-3 rounded-lg shadow-sm transition flex items-center border border-main"
+            className="text-sm bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100 font-bold py-1.5 px-3 rounded-lg shadow-sm transition flex items-center border border-gray-200 dark:border-gray-700"
           >
-            <MessageCircle className="w-4 h-4 mr-1.5 text-blue-500" /> Chat
+            <MessageCircle className="w-4 h-4 mr-1.5 text-blue-600" /> Chat
           </button>
           <button 
             onClick={() => setIsModalOpen(true)}
@@ -253,8 +253,8 @@ const TeamMembers = ({ uid, userName }) => {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 dark:text-gray-400 p-8">
-            <div className="w-16 h-16 bg-blue-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-              <Users className="w-8 h-8 text-blue-300 dark:text-gray-500" />
+            <div className="w-16 h-16 bg-white border-2 border-gray-100 dark:border-gray-700 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4 shadow-sm">
+              <Users className="w-8 h-8 text-blue-400 dark:text-gray-500" />
             </div>
             <p className="mb-2">No friends yet.</p>
             <p className="text-sm opacity-70">Search for usernames to find partners.</p>

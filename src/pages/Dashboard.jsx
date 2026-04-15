@@ -443,7 +443,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
               <button 
                 type="submit"
                 disabled={submittingFeedback}
-                className="w-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-main font-medium py-2.5 rounded-lg transition border border-gray-200 dark:border-gray-700 flex items-center justify-center"
+                className="w-full bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100 font-bold py-3 rounded-xl transition border border-gray-200 dark:border-gray-700 flex items-center justify-center shadow-sm disabled:opacity-50"
               >
                 {submittingFeedback ? 'Submitting...' : (
                   <>
