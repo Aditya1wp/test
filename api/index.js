@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,6 +29,34 @@ cloudinary.config({
 });
 
 console.log("DEBUG: Cloudinary initialized with cloud_name:", process.env.CLOUDINARY_CLOUD_NAME || "dago0a24o");
+
+// --- STREAM CHAT AUTH HELPER ---
+function base64UrlEncode(str) {
+  return Buffer.from(str)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
+
+function generateStreamToken(userId) {
+  const secret = process.env.STREAM_API_SECRET || "6hnsya4xvwde32e9spwa8wgp55qa7fbepds4ua27xbfvpvj7pbzjmasvgrfs4ffp";
+  const header = base64UrlEncode(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+  const payload = base64UrlEncode(JSON.stringify({ 
+    user_id: userId,
+    iat: Math.floor(Date.now() / 1000)
+  }));
+  
+  const signature = crypto
+    .createHmac('sha256', secret)
+    .update(`${header}.${payload}`)
+    .digest('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+
+  return `${header}.${payload}.${signature}`;
+}
 
 // --- DATABASE SETUP ---
 const dbPath = process.env.VERCEL ? '/tmp/nimcet.db' : path.join(__dirname, 'nimcet.db');
@@ -367,6 +396,19 @@ app.post('/api/storage/delete', async (req, res) => {
   } catch (err) {
     console.error("CLOUDINARY DELETE FAILURE:", err.message);
     res.status(500).json({ error: err.message || "Unknown Cloudinary error" });
+  }
+});
+
+app.get('/api/chat/token', (req, res) => {
+  const { userId } = req.query;
+  if (!userId) return res.status(400).json({ error: "userId is required" });
+  
+  try {
+    const token = generateStreamToken(userId);
+    res.json({ token, apiKey: process.env.STREAM_API_KEY || "we2azdyucvsp" });
+  } catch (err) {
+    console.error("Token Generation Error:", err);
+    res.status(500).json({ error: "Failed to generate token" });
   }
 });
 

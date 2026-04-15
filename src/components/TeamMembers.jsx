@@ -111,7 +111,6 @@ const TeamMembers = ({ uid, userName }) => {
       </div>
 
       {isModalOpen && (
-      {isModalOpen && (
         <Modal 
           isOpen={isModalOpen} 
           onClose={() => setIsModalOpen(false)} 
