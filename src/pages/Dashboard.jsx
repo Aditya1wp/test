@@ -14,7 +14,8 @@ import {
   Crown,
   CreditCard,
   Calendar,
-  Zap
+  Zap,
+  Loader2
 } from 'lucide-react';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase.js';
@@ -40,6 +41,11 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
     totalTime: "0h 0m"
   });
 
+  // Payment State
+  const [paymentStep, setPaymentStep] = useState('pricing'); // 'pricing' or 'gateway'
+  const [timeLeft, setTimeLeft] = useState(0); // in seconds
+  const [utr, setUtr] = useState('');
+
   useEffect(() => {
     if (!user?.uid) return;
     
@@ -55,6 +61,29 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
     fetchHistory();
     return () => unsubscribeProfile();
   }, [user?.uid]);
+
+  // Timer Logic
+  useEffect(() => {
+    if (paymentStep !== 'gateway' || timeLeft <= 0) return;
+    
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          setPaymentStep('pricing');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [paymentStep, timeLeft]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
 
   const fetchHistory = async () => {
@@ -114,16 +143,23 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
   const isPremium = profile?.isPremium && profile?.premiumExpiryDate && new Date(profile.premiumExpiryDate) > new Date();
   const expiryDate = profile?.premiumExpiryDate ? new Date(profile.premiumExpiryDate).toLocaleDateString() : null;
 
-  const handlePremiumPayment = async () => {
+  const handleStartPayment = () => {
+    setPaymentStep('gateway');
+    setTimeLeft(900); // 15 minutes
+  };
+
+  const handleVerifyPayment = async () => {
     if (!user?.uid) return;
+    if (!utr.trim()) {
+      alert("Please enter a valid Transaction ID / UTR for verification.");
+      return;
+    }
     setProcessingPayment(true);
     
     try {
       const now = new Date();
-      let newStartDate = now;
       let newExpiryDate = new Date(now.getTime());
 
-      // Extension Logic: If already premium, add 1 year to existing expiry
       if (isPremium && profile.premiumExpiryDate) {
         const currentExpiry = new Date(profile.premiumExpiryDate);
         newExpiryDate = new Date(currentExpiry.getTime());
@@ -133,16 +169,19 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
 
       await updateDoc(doc(db, 'users', user.uid), {
         isPremium: true,
-        premiumStartDate: profile?.premiumStartDate || newStartDate.toISOString(),
+        premiumStartDate: profile?.premiumStartDate || now.toISOString(),
         premiumExpiryDate: newExpiryDate.toISOString(),
-        plan: 'pro' // Maintain backward compatibility
+        plan: 'pro',
+        lastUtr: utr.trim() // Store for manual audit
       });
 
-      alert("Premium activated successfully! Enjoy unlimited access.");
+      alert("Verification request submitted! Premium activated. (Admin will verify your Transaction ID).");
       setIsPremiumModalOpen(false);
+      setPaymentStep('pricing');
+      setUtr('');
     } catch (err) {
       console.error("Premium Update Error:", err);
-      alert("Failed to process payment. Please try again.");
+      alert("Failed to process verification. Please try again.");
     } finally {
       setProcessingPayment(false);
     }
@@ -434,7 +473,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
                     </div>
                   </div>
                 </div>
-              ) : (
+              ) : paymentStep === 'pricing' ? (
                 <ul className="space-y-3">
                   <li className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-300">
                     <CheckCircle className="w-4 h-4 mr-3 text-emerald-500" /> Unlimited File Storage
@@ -449,40 +488,78 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
                     <CheckCircle className="w-4 h-4 mr-3 text-emerald-500" /> 1 Year Full Access
                   </li>
                 </ul>
+              ) : (
+                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                  <div className="flex justify-between items-center bg-gray-100 dark:bg-gray-800 p-3 rounded-xl border border-main">
+                    <div className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-widest">
+                      <Clock className="w-4 h-4 mr-2" /> Expires in
+                    </div>
+                    <div className="text-lg font-black text-blue-600 dark:text-blue-400 tabular-nums">
+                      {formatTime(timeLeft)}
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-gray-100 dark:border-gray-800">
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&color=2563eb&data=${encodeURIComponent('upi://pay?pa=adityagaurav1122@okhdfcbank&pn=Aditya&am=50&cu=INR&tn=NIMCET_PRO')}`}
+                      alt="UPI QR Code"
+                      className="w-40 h-40 mb-3"
+                    />
+                    <p className="text-[10px] font-black uppercase tracking-tighter text-gray-400">Scan with any UPI App</p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="text-center">
+                      <p className="text-xs font-bold text-gray-500 mb-1">UPI ID: adityagaurav1122@okhdfcbank</p>
+                      <p className="text-xl font-black text-main">Amount: ₹50</p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 ml-1">Submit Transaction ID / UTR</label>
+                      <input 
+                        type="text"
+                        placeholder="12-digit Transaction ID"
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 rounded-xl outline-none transition text-sm font-bold"
+                        value={utr}
+                        onChange={(e) => setUtr(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
               )}
 
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 text-center">
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Pay via UPI</p>
-                <div className="flex items-center justify-center space-x-2 text-lg font-black text-blue-600 dark:text-blue-400 mb-1">
-                  <span>adityagaurav1122@okhdfcbank</span>
-                </div>
-                <p className="text-2xl font-black text-main">₹50/year</p>
-                <p className="mt-4 text-[10px] text-gray-400 leading-relaxed uppercase tracking-tighter text-center">
-                  After payment, click "PAY ₹50" to activate instantly. <br/>
-                  Backend verification logic included.
-                </p>
-              </div>
-
               <div className="space-y-3">
+                {paymentStep === 'pricing' ? (
+                  <button
+                    disabled={processingPayment}
+                    type="button"
+                    onClick={handleStartPayment}
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center text-lg uppercase tracking-wider"
+                  >
+                    Pay ₹50 & Upgrade
+                  </button>
+                ) : (
+                  <button
+                    disabled={processingPayment}
+                    type="button"
+                    onClick={handleVerifyPayment}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-black py-4 rounded-2xl shadow-xl shadow-emerald-500/20 transition-all active:scale-[0.98] flex items-center justify-center text-lg uppercase tracking-wider"
+                  >
+                    {processingPayment ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Confirm & Verify'}
+                  </button>
+                )}
+                
                 <button
                   disabled={processingPayment}
                   type="button"
-                  onClick={handlePremiumPayment}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center text-lg uppercase tracking-wider"
-                >
-                  {processingPayment ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  ) : (
-                    <>Pay ₹50 & Upgrade</>
-                  )}
-                </button>
-                <button
-                  disabled={processingPayment}
-                  type="button"
-                  onClick={() => setIsPremiumModalOpen(false)}
+                  onClick={() => {
+                    setIsPremiumModalOpen(false);
+                    setPaymentStep('pricing');
+                    setUtr('');
+                  }}
                   className="w-full text-center text-sm font-bold text-gray-400 hover:text-gray-600 transition"
                 >
-                  Close
+                  {paymentStep === 'gateway' ? 'Cancel Payment' : 'Close'}
                 </button>
               </div>
             </div>
