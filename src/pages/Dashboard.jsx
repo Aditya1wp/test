@@ -245,6 +245,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
       <div className="space-y-8 mb-8">
         {/* Row 1: Files and Team */}
         {user ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <MyFiles uid={user.uid} isPremium={isPremium} />
             <TeamMembers uid={user.uid} userName={profile?.display_name} />
           </div>
