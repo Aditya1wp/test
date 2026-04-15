@@ -9,6 +9,15 @@ function normalizeUsername(value) {
   return value.trim().toLowerCase().replace(/[^a-z0-9._]/g, '');
 }
 
+function generateRandomUsername() {
+  const adjectives = ['expert', 'fast', 'smart', 'aim', 'rank', 'mock', 'crack', 'nimcet'];
+  const nouns = ['aspirant', 'warrior', 'learner', 'solver', 'topper', 'scholar'];
+  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  const num = Math.floor(100000 + Math.random() * 899999);
+  return `${adj}_${noun}_${num}`;
+}
+
 export default function ProfileSetup() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -47,7 +56,7 @@ export default function ProfileSetup() {
         }
 
         const data = userDoc.data();
-        const storedUsername = data.username || '';
+        const storedUsername = data.username || generateRandomUsername();
 
         setFormData({
           fullName: data.display_name || currentUser.displayName || '',
@@ -56,7 +65,7 @@ export default function ProfileSetup() {
           website: data.website || '',
           gender: data.gender || 'Prefer not to say',
         });
-        setInitialUsername(storedUsername);
+        setInitialUsername(data.username || ''); // Only set initial if it actually exists in DB
         setProfilePreview(data.profile_pic_url || '');
       } catch (loadError) {
         if (active) {
@@ -87,12 +96,19 @@ export default function ProfileSetup() {
     const timeoutId = setTimeout(async () => {
       setUsernameStatus('checking');
       try {
-        const usernameQuery = query(collection(db, 'users'), where('username', '==', normalizedUsername));
+        const usernameQuery = query(
+          collection(db, 'users'), 
+          where('username', '==', normalizedUsername)
+        );
         const snapshot = await getDocs(usernameQuery);
-        if (!isActive) {
-          return;
-        }
-        setUsernameStatus(snapshot.empty ? 'available' : 'taken');
+        
+        if (!isActive) return;
+
+        // Ensure we don't count our own document as "taking" the username
+        const currentUserId = auth.currentUser?.uid;
+        const isTakenByOthers = snapshot.docs.some(doc => doc.id !== currentUserId);
+
+        setUsernameStatus(isTakenByOthers ? 'taken' : 'available');
       } catch (queryError) {
         if (isActive) {
           setUsernameStatus('error');

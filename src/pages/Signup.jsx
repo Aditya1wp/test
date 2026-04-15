@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification, signOut, updateProfile } from 'firebase/auth';
 import { ArrowLeft, ArrowRight, Loader2, ShieldCheck, Smartphone, UserRound } from 'lucide-react';
-import { auth } from '../lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../lib/firebase';
 import './AuthPages.css';
 
 const steps = [
@@ -101,7 +102,24 @@ export default function Signup() {
     setError('');
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, formData.identity.trim(), formData.password);
-      await sendEmailVerification(userCredential.user);
+      const user = userCredential.user;
+
+      // Update Firebase Auth profile
+      await updateProfile(user, {
+        displayName: formData.fullName.trim()
+      });
+
+      // Initialize Firestore document
+      await setDoc(doc(db, 'users', user.uid), {
+        display_name: formData.fullName.trim(),
+        username: normalizedUsername,
+        email: user.email,
+        plan: 'free',
+        isPremium: false,
+        created_at: new Date().toISOString()
+      }, { merge: true });
+
+      await sendEmailVerification(user);
       navigate('/verify-email', { state: { email: formData.identity.trim() } });
     } catch (signupError) {
       setError(formatSignupError(signupError));
