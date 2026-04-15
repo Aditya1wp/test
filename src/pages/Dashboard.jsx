@@ -139,16 +139,18 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
           </div>
         </div>
         <div className="bg-panel rounded-xl shadow-sm p-6 border border-main">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
-              <BarChart3 className="h-6 w-6" />
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <div className="p-3 rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+                <BarChart3 className="h-6 w-6" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Average Score</p>
+                <p className="text-2xl font-semibold">{stats.avgScore}</p>
+              </div>
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Average Score</p>
-              <p className="text-2xl font-semibold">{stats.avgScore}</p>
-            </div>
-            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-              <BarChart3 className="h-6 w-6" />
+            <div className="p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg backdrop-blur-sm border border-main/50">
+              <BarChart3 className="h-6 w-6 opacity-40" />
             </div>
           </div>
         </div>
