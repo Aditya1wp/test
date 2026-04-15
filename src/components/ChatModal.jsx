@@ -43,15 +43,25 @@ const ChatModal = ({ isOpen, onClose, uid, userName }) => {
 
       // 2. Initialize Stream Client
       const client = window.StreamChat.getInstance(apiKey);
+      
+      // Ensure we use the Display Name or Username for privacy, NOT email
+      const displayName = userName || 'Aspirant';
+
       await client.connectUser(
-        { id: uid, name: userName || 'Aspirant' },
+        { 
+          id: uid, 
+          name: displayName,
+          // Hide identity - don't send email or other private metadata here
+        },
         token
       );
 
-      // 3. Create/Join Study Group Channel
-      const groupChannel = client.channel('messaging', 'study_group_global', {
-        name: 'Study Group Discussion',
+      // 3. Create/Join the GLOBAL Community Channel
+      // Everyone joins this one channel for a public website chat
+      const groupChannel = client.channel('messaging', 'community_global_lobby', {
+        name: 'Community Lobby',
       });
+      
       await groupChannel.watch();
 
       setChatClient(client);
@@ -63,8 +73,13 @@ const ChatModal = ({ isOpen, onClose, uid, userName }) => {
 
       // 4. Listen for new messages
       groupChannel.on('message.new', event => {
-        setMessages(prev => [...prev, event.message]);
-        scrollToBottom();
+        setMessages(prev => {
+          // Prevent duplicates
+          if (prev.some(m => m.id === event.message.id)) return prev;
+          const newMessages = [...prev, event.message];
+          scrollToBottom();
+          return newMessages;
+        });
       });
 
     } catch (err) {
