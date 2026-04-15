@@ -9,6 +9,10 @@ function normalizeUsername(value) {
   return value.trim().toLowerCase().replace(/[^a-z0-9._]/g, '');
 }
 
+function isPlaceholder(url) {
+  return !url || url.includes('placehold.co') || url.includes('text=%2B');
+}
+
 function generateRandomUsername() {
   const adjectives = ['expert', 'fast', 'smart', 'aim', 'rank', 'mock', 'crack', 'nimcet'];
   const nouns = ['aspirant', 'warrior', 'learner', 'solver', 'topper', 'scholar'];
@@ -228,7 +232,7 @@ export default function ProfileSetup() {
           <div className="profile-hero-card">
             <div className="profile-avatar-block">
               <label className="profile-avatar-uploader">
-                {profilePreview ? (
+                {!isPlaceholder(profilePreview) ? (
                   <img src={profilePreview} alt="Profile preview" className="profile-avatar-image" />
                 ) : (
                   <div className="profile-avatar-placeholder">

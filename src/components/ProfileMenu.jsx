@@ -10,6 +10,10 @@ function getInitial(name, email) {
   return source.charAt(0).toUpperCase();
 }
 
+function isPlaceholder(url) {
+  return !url || url.includes('placehold.co') || url.includes('text=%2B');
+}
+
 export default function ProfileMenu({ user, setUser }) {
   const navigate = useNavigate();
   const menuRef = useRef(null);
@@ -91,7 +95,7 @@ export default function ProfileMenu({ user, setUser }) {
         className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-main bg-blue-600/10 text-sm font-black text-blue-700 transition hover:scale-105 hover:bg-blue-600/15 dark:text-blue-300"
         title="Open profile menu"
       >
-        {profile.photoURL ? (
+        {!isPlaceholder(profile.photoURL) ? (
           <img src={profile.photoURL} alt="Profile" className="h-full w-full object-cover" />
         ) : (
           <span>{initial}</span>
