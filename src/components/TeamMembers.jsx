@@ -31,14 +31,14 @@ const TeamMembers = ({ uid }) => {
     try {
       await addDoc(collection(db, `users/${uid}/teamMembers`), {
         name: formData.name.trim(),
-        role: formData.role.trim() || 'Member',
+        role: formData.role.trim() || 'Study Partner',
         createdAt: serverTimestamp()
       });
       setIsModalOpen(false);
       setFormData({ name: '', role: '' });
     } catch (err) {
-      console.error("Error adding member: ", err);
-      alert("Failed to add member.");
+      console.error("Error adding friend: ", err);
+      alert("Failed to add friend.");
     } finally {
       setSaving(false);
     }
@@ -49,7 +49,7 @@ const TeamMembers = ({ uid }) => {
       <div className="px-6 py-5 border-b border-main flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30">
         <h3 className="text-xl font-semibold flex items-center">
           <Users className="w-5 h-5 mr-2 text-purple-500" />
-          Team Members
+          Friends
           <span className="ml-3 text-xs font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 px-2 py-0.5 rounded-full">
             {members.length}
           </span>
@@ -58,7 +58,7 @@ const TeamMembers = ({ uid }) => {
           onClick={() => setIsModalOpen(true)}
           className="text-sm bg-purple-600 hover:bg-purple-700 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition flex items-center"
         >
-          <UserPlus className="w-4 h-4 mr-1" /> Add Member
+          <UserPlus className="w-4 h-4 mr-1" /> Add Friend
         </button>
       </div>
       
@@ -91,8 +91,8 @@ const TeamMembers = ({ uid }) => {
             <div className="w-16 h-16 bg-purple-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
               <Users className="w-8 h-8 text-purple-300 dark:text-gray-500" />
             </div>
-            <p className="mb-2">No team members yet.</p>
-            <p className="text-sm opacity-70">Build your dream team here.</p>
+            <p className="mb-2">No friends yet.</p>
+            <p className="text-sm opacity-70">Connect with other aspirants here.</p>
           </div>
         )}
       </div>
@@ -101,9 +101,9 @@ const TeamMembers = ({ uid }) => {
         <Modal 
           isOpen={isModalOpen} 
           onClose={() => setIsModalOpen(false)} 
-          title="Add Team Member"
+          title="Add New Friend"
           onSubmit={handleSubmit}
-          submitText="Add Member"
+          submitText="Add Friend"
           loading={saving}
         >
           <div>
