@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LogOut, Settings, Crown, Search, UserPlus2, UserCheck, X, UserMinus, Bell, Users, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { LogOut, Settings, Crown, Search, UserPlus2, UserCheck, X, UserMinus, Bell, Users, MessageCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, getDocs, doc, setDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase.js';
 import Modal from './Modal';
