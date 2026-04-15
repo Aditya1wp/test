@@ -243,13 +243,14 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
       </div>
 
       <div className="space-y-8 mb-8">
-        {/* Row 1: Files and Team */}
-        {user ? (
+        {user && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <MyFiles uid={user.uid} isPremium={isPremium} />
             <TeamMembers uid={user.uid} userName={profile?.display_name} />
           </div>
-        ) : (
+        )}
+
+        {!user && (
           <div className="h-40 flex items-center justify-center border border-dashed border-main rounded-xl">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
