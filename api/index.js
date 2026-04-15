@@ -302,19 +302,25 @@ app.get('/api/history', async (req, res) => {
   }
 });
 
-// --- CLOUDINARY UPLOAD ROUTE ---
+// --- CLOUDINARY STORAGE ROUTES ---
 app.post('/api/storage/upload', upload.single('file'), async (req, res) => {
   try {
     const { file } = req;
+    const { uid } = req.body;
+    
     if (!file) return res.status(400).json({ error: "No file provided" });
+    if (!uid) return res.status(400).json({ error: "User ID (uid) is required" });
 
     // Using a stream to upload the buffer to Cloudinary
-    const uploadFromBuffer = (fileBuffer) => {
+    const uploadFromBuffer = (fileBuffer, originalName) => {
       return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           { 
-            folder: "nimcet_vault",
-            resource_type: "auto"
+            folder: `user_uploads/${uid}`,
+            public_id: path.parse(originalName).name,
+            resource_type: "auto",
+            use_filename: true,
+            unique_filename: true
           },
           (error, result) => {
             if (result) resolve(result);
@@ -325,9 +331,9 @@ app.post('/api/storage/upload', upload.single('file'), async (req, res) => {
       });
     };
 
-    const result = await uploadFromBuffer(file.buffer);
+    const result = await uploadFromBuffer(file.buffer, file.originalname);
 
-    console.log("File uploaded to Cloudinary successfully:", result.public_id);
+    console.log(`File uploaded to Cloudinary for user ${uid}: ${result.public_id}`);
 
     res.json({
       success: true,
@@ -335,10 +341,31 @@ app.post('/api/storage/upload', upload.single('file'), async (req, res) => {
       name: file.originalname,
       url: result.secure_url,
       format: result.format,
-      bytes: result.bytes
+      bytes: result.bytes,
+      resource_type: result.resource_type
     });
   } catch (err) {
     console.error("CLOUDINARY UPLOAD FAILURE:", err.message);
+    res.status(500).json({ error: err.message || "Unknown Cloudinary error" });
+  }
+});
+
+app.post('/api/storage/delete', async (req, res) => {
+  try {
+    const { publicId, resourceType } = req.body;
+    if (!publicId) return res.status(400).json({ error: "publicId is required" });
+
+    const result = await cloudinary.uploader.destroy(publicId, { 
+      resource_type: resourceType || 'image' 
+    });
+
+    if (result.result === 'ok' || result.result === 'not found') {
+      res.json({ success: true, result: result.result });
+    } else {
+      throw new Error(result.result);
+    }
+  } catch (err) {
+    console.error("CLOUDINARY DELETE FAILURE:", err.message);
     res.status(500).json({ error: err.message || "Unknown Cloudinary error" });
   }
 });
