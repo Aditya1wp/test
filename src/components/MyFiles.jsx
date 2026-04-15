@@ -4,10 +4,9 @@ import { db } from '../lib/firebase.js';
 import { Folder, FileText, ExternalLink, UploadCloud, FolderPlus, Download, Trash2, XCircle, Loader2, Crown, AlertTriangle, Smartphone } from 'lucide-react';
 import Modal from './Modal';
 
-const MyFiles = ({ uid }) => {
+const MyFiles = ({ uid, isPremium }) => {
   const [folders, setFolders] = useState([]);
   const [files, setFiles] = useState([]);
-  const [plan, setPlan] = useState('free');
   const [loading, setLoading] = useState(true);
   
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
@@ -25,15 +24,6 @@ const MyFiles = ({ uid }) => {
   useEffect(() => {
     if (!uid) return;
     
-    // Listen for user plan status
-    const userRef = doc(db, 'users', uid);
-    const unsubscribePlan = onSnapshot(userRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const userData = docSnap.data();
-        setPlan(userData.plan || 'free');
-      }
-    });
-
     const foldersQ = query(collection(db, `users/${uid}/folders`), orderBy('createdAt', 'desc'));
     const unsubscribeFolders = onSnapshot(foldersQ, (snapshot) => {
       setFolders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -49,14 +39,13 @@ const MyFiles = ({ uid }) => {
     });
 
     return () => {
-      unsubscribePlan();
       unsubscribeFolders();
       unsubscribeFiles();
     };
   }, [uid]);
 
   const FILE_LIMIT = 5;
-  const isLimitReached = plan === 'free' && files.length >= FILE_LIMIT;
+  const isLimitReached = !isPremium && files.length >= FILE_LIMIT;
 
   const handleCreateFolder = async (e) => {
     e.preventDefault();
@@ -218,12 +207,12 @@ const MyFiles = ({ uid }) => {
           <Folder className="w-5 h-5 mr-2 text-yellow-500" />
           My Files
           <span className={`ml-3 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center ${
-            plan === 'pro' 
+            isPremium 
               ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300' 
               : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
           }`}>
-            {plan === 'pro' ? <Crown className="w-3 h-3 mr-1" /> : null}
-            {plan === 'pro' ? 'Pro Plan' : `Free (Limit: ${files.length}/${FILE_LIMIT})`}
+            {isPremium ? <Crown className="w-3 h-3 mr-1" /> : null}
+            {isPremium ? 'Pro Plan' : `Free (Limit: ${files.length}/${FILE_LIMIT})`}
           </span>
         </h3>
         <div className="flex space-x-2">
@@ -374,8 +363,8 @@ const MyFiles = ({ uid }) => {
         }} 
         title="Upload File"
         onSubmit={handleAddFile}
-        submitText={saving ? "Uploading..." : "Start Upload"}
-        loading={saving}
+        submitText={isLimitReached ? "Limit Reached" : (saving ? "Uploading..." : "Start Upload")}
+        loading={saving || isLimitReached}
       >
         <div className="space-y-5">
           {/* File Picker */}
@@ -431,6 +420,13 @@ const MyFiles = ({ uid }) => {
             <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-lg text-red-600 dark:text-red-400 text-xs">
               <XCircle className="w-4 h-4 shrink-0" />
               <span>{uploadError}</span>
+            </div>
+          )}
+
+          {isLimitReached && (
+            <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 rounded-lg text-amber-600 dark:text-amber-400 text-xs font-bold">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>Limit Reached! Upgrade to Premium to add more files.</span>
             </div>
           )}
 

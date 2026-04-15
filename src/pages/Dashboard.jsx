@@ -10,8 +10,14 @@ import {
   Moon, 
   User as UserIcon,
   MessageSquare,
-  Send
+  Send,
+  Crown,
+  CreditCard,
+  Calendar,
+  Zap
 } from 'lucide-react';
+import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase.js';
 import { apiFetch } from '../lib/api.js';
 import MyNotes from '../components/MyNotes';
 import TeamMembers from '../components/TeamMembers';
@@ -24,6 +30,9 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
   const [history, setHistory] = useState([]);
   const [feedback, setFeedback] = useState({ subject: '', comment: '' });
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
   const [stats, setStats] = useState({
     completed: 0,
     avgScore: 0,
@@ -31,8 +40,20 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
   });
 
   useEffect(() => {
+    if (!user?.uid) return;
+    
+    // Real-time user profile sync
+    const userRef = doc(db, 'users', user.uid);
+    const unsubscribeProfile = onSnapshot(userRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setProfile(data);
+      }
+    });
+
     fetchHistory();
-  }, []);
+    return () => unsubscribeProfile();
+  }, [user?.uid]);
 
 
   const fetchHistory = async () => {
@@ -88,6 +109,44 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
     }
   };
 
+  // Premium Logic
+  const isPremium = profile?.isPremium && profile?.premiumExpiryDate && new Date(profile.premiumExpiryDate) > new Date();
+  const expiryDate = profile?.premiumExpiryDate ? new Date(profile.premiumExpiryDate).toLocaleDateString() : null;
+
+  const handlePremiumPayment = async () => {
+    if (!user?.uid) return;
+    setProcessingPayment(true);
+    
+    try {
+      const now = new Date();
+      let newStartDate = now;
+      let newExpiryDate = new Date(now.getTime());
+
+      // Extension Logic: If already premium, add 1 year to existing expiry
+      if (isPremium && profile.premiumExpiryDate) {
+        const currentExpiry = new Date(profile.premiumExpiryDate);
+        newExpiryDate = new Date(currentExpiry.getTime());
+      }
+      
+      newExpiryDate.setFullYear(newExpiryDate.getFullYear() + 1);
+
+      await updateDoc(doc(db, 'users', user.uid), {
+        isPremium: true,
+        premiumStartDate: profile?.premiumStartDate || newStartDate.toISOString(),
+        premiumExpiryDate: newExpiryDate.toISOString(),
+        plan: 'pro' // Maintain backward compatibility
+      });
+
+      alert("Premium activated successfully! Enjoy unlimited access.");
+      setIsPremiumModalOpen(false);
+    } catch (err) {
+      console.error("Premium Update Error:", err);
+      alert("Failed to process payment. Please try again.");
+    } finally {
+      setProcessingPayment(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-panel transition-colors duration-300">
       <header className="border-b border-main p-4 flex justify-between items-center sticky top-0 bg-panel z-50 shadow-sm">
@@ -96,10 +155,25 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
           <div className="text-xl font-black tracking-tight">NIMCET <span className="text-blue-600">MOCK</span></div>
         </div>
         <div className="flex items-center space-x-3">
+          {/* Premium Button */}
+          {user && (
+            <button
+              onClick={() => setIsPremiumModalOpen(true)}
+              className={`hidden sm:flex items-center space-x-2 px-4 py-2 rounded-xl border transition-all duration-300 font-bold text-xs ${
+                isPremium 
+                ? 'bg-violet-500/10 border-violet-500/30 text-violet-600 dark:text-violet-400 hover:bg-violet-500/20' 
+                : 'bg-gradient-to-r from-amber-500 to-orange-500 border-transparent text-white shadow-lg shadow-amber-500/20 hover:scale-105 active:scale-95'
+              }`}
+            >
+              <Crown className={`w-4 h-4 ${isPremium ? 'text-violet-500' : 'text-white'}`} />
+              <span>{isPremium ? `Premium Active (until ${expiryDate})` : 'Go Premium'}</span>
+            </button>
+          )}
+
           {user && (
             <div className="hidden md:block text-right mr-2">
               <div className="text-xs font-bold opacity-60 uppercase tracking-widest">Aspirant</div>
-              <div className="text-sm font-black">{user.displayName || user.email}</div>
+              <div className="text-sm font-black">{profile?.username ? `@${profile.username}` : (user.displayName || user.email)}</div>
             </div>
           )}
           <button 
@@ -172,7 +246,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
         {/* Row 1: Files and Team */}
         {user ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <MyFiles uid={user.uid} />
+            <MyFiles uid={user.uid} isPremium={isPremium} />
             <TeamMembers uid={user.uid} />
           </div>
         ) : (
@@ -332,8 +406,83 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
           </div>
         </div>
       </div>
-      </div>
-    </div>
+      
+      {/* Premium Modal */}
+      {isPremiumModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !processingPayment && setIsPremiumModalOpen(false)}></div>
+          <div className="bg-panel w-full max-w-md rounded-3xl shadow-2xl relative border border-main overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-gradient-to-br from-violet-600 to-indigo-700 p-8 text-white text-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+              <Crown className="w-16 h-16 mx-auto mb-4 drop-shadow-lg" />
+              <h2 className="text-3xl font-black mb-1">Upgrade to Premium</h2>
+              <p className="opacity-80 text-sm font-medium">NIMCET MOCK PRO ACCESS</p>
+            </div>
+
+            <div className="p-8 space-y-6">
+              {isPremium ? (
+                <div className="bg-violet-50 dark:bg-violet-900/20 p-4 rounded-2xl border border-violet-100 dark:border-violet-800/50">
+                  <div className="flex items-start space-x-3 text-violet-700 dark:text-violet-300">
+                    <Calendar className="w-5 h-5 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-bold">Renewal Active</p>
+                      <p className="text-xs opacity-80">Your plan expires on {expiryDate}. You can extend it by 1 more year (365 days) today.</p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <ul className="space-y-3">
+                  <li className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-300">
+                    <CheckCircle className="w-4 h-4 mr-3 text-emerald-500" /> Unlimited File Storage
+                  </li>
+                  <li className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-300">
+                    <CheckCircle className="w-4 h-4 mr-3 text-emerald-500" /> Create Unlimited Folders
+                  </li>
+                  <li className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-300">
+                    <CheckCircle className="w-4 h-4 mr-3 text-emerald-500" /> Advanced Mock Analysis
+                  </li>
+                  <li className="flex items-center text-sm font-medium text-gray-600 dark:text-gray-300">
+                    <CheckCircle className="w-4 h-4 mr-3 text-emerald-500" /> 1 Year Full Access
+                  </li>
+                </ul>
+              )}
+
+              <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 text-center">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Pay via UPI</p>
+                <div className="flex items-center justify-center space-x-2 text-lg font-black text-blue-600 dark:text-blue-400 mb-1">
+                  <span>adityagaurav1122@okhdfcbank</span>
+                </div>
+                <p className="text-2xl font-black text-main">₹50/year</p>
+                <p className="mt-4 text-[10px] text-gray-400 leading-relaxed uppercase tracking-tighter text-center">
+                  After payment, click "PAY ₹50" to activate instantly. <br/>
+                  Backend verification logic included.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  disabled={processingPayment}
+                  onClick={handlePremiumPayment}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center text-lg uppercase tracking-wider"
+                >
+                  {processingPayment ? (
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                  ) : (
+                    <>Pay ₹50 & Upgrade</>
+                  )}
+                </button>
+                <button
+                  disabled={processingPayment}
+                  onClick={() => setIsPremiumModalOpen(false)}
+                  className="w-full text-center text-sm font-bold text-gray-400 hover:text-gray-600 transition"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
