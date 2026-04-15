@@ -407,6 +407,8 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
         </div>
       </div>
       
+      </div>
+      
       {/* Premium Modal */}
       {isPremiumModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -462,6 +464,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
               <div className="space-y-3">
                 <button
                   disabled={processingPayment}
+                  type="button"
                   onClick={handlePremiumPayment}
                   className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center text-lg uppercase tracking-wider"
                 >
@@ -473,6 +476,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
                 </button>
                 <button
                   disabled={processingPayment}
+                  type="button"
                   onClick={() => setIsPremiumModalOpen(false)}
                   className="w-full text-center text-sm font-bold text-gray-400 hover:text-gray-600 transition"
                 >
@@ -483,6 +487,7 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };
