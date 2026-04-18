@@ -47,7 +47,7 @@ const InstallPrompt = () => {
             <Download className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-bold text-gray-900 dark:text-white leading-tight">Install NIMCET Mock</h3>
+            <h3 className="font-bold text-gray-900 dark:text-white leading-tight">Install Mock Test App</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Get the full app experience on your phone</p>
           </div>
         </div>

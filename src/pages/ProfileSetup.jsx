@@ -14,7 +14,7 @@ function isPlaceholder(url) {
 }
 
 function generateRandomUsername() {
-  const adjectives = ['expert', 'fast', 'smart', 'aim', 'rank', 'mock', 'crack', 'nimcet'];
+  const adjectives = ['expert', 'fast', 'smart', 'aim', 'rank', 'mock', 'crack', 'ace'];
   const nouns = ['aspirant', 'warrior', 'learner', 'solver', 'topper', 'scholar'];
   const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
   const noun = nouns[Math.floor(Math.random() * nouns.length)];
@@ -220,7 +220,7 @@ export default function ProfileSetup() {
             <p className="profile-setup-eyebrow">Settings</p>
             <h1>Profile Details</h1>
             <p className="profile-setup-subtitle">
-              Keep your NIMCET account polished and ready for every mock test session.
+              Keep your account polished and ready for every mock test session.
             </p>
           </div>
           <button type="button" onClick={() => navigate('/home')} className="profile-skip-button">

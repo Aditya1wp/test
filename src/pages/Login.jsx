@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut, signInWithPopup } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { auth } from '../lib/firebase';
+import { auth, googleProvider } from '../lib/firebase';
 import './AuthPages.css';
 
 function TrendingUp({ className, size = 24 }) {
@@ -19,6 +19,17 @@ function AuraIcon({ className, size = 24 }) {
     <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
       <path d="M5 3v4" /><path d="M19 17v4" /><path d="M3 5h4" /><path d="M17 19h4" />
+    </svg>
+  );
+}
+
+function GoogleIcon({ className, size = 18 }) {
+  return (
+    <svg className={className} width={size} height={size} viewBox="0 0 48 48">
+      <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
+      <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
+      <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
+      <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
     </svg>
   );
 }
@@ -75,6 +86,19 @@ export default function Login() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await signInWithPopup(auth, googleProvider);
+      navigate('/home');
+    } catch (authError) {
+      setError(resolveAuthError(authError));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="authx-page">
       <section className="authx-visual">
@@ -89,7 +113,7 @@ export default function Login() {
               Analyze. <span className="authx-gradient">Prepare. Ace.</span>
             </h1>
             <p className="authx-visual-copy">
-              The most advanced mock engine for NIMCET aspirants. Premium tools,
+              The most advanced mock engine for serious aspirants. Premium tools,
               elite insights.
             </p>
           </div>
@@ -137,6 +161,13 @@ export default function Login() {
             Enter your credentials to access your insights.
           </p>
 
+          <button type="button" onClick={handleGoogleLogin} disabled={loading} className="authx-google-button">
+            <GoogleIcon />
+            Continue with Google
+          </button>
+
+          <div className="authx-divider">Or continue with email</div>
+
           <form onSubmit={handleLogin} className="authx-form">
             <label className="authx-field">
               <span>Email Address</span>
@@ -145,7 +176,7 @@ export default function Login() {
                 type="email"
                 value={identifier}
                 onChange={(event) => setIdentifier(event.target.value)}
-                placeholder="aspirant@example.com"
+                placeholder="student@example.com"
                 autoComplete="username"
                 required
               />
