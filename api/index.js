@@ -146,15 +146,27 @@ const getGuestUser = async () => {
 // --- DATA: LOAD QUESTIONS ---
 let questionsData = { "Mathematics": [], "Logical Reasoning": [], "Computer Awareness": [], "General English": [] };
 try {
-  const jsonPath = path.join(__dirname, 'questions.json');
+  // Use process.cwd() which helps in Vercel to find files in the project root/api folder
+  const jsonPath = path.resolve(process.cwd(), 'api', 'questions.json');
+  console.log("DEBUG: Attempting to load questions from:", jsonPath);
+  
   if (fs.existsSync(jsonPath)) {
     questionsData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-    console.log("Loaded questions keys:", Object.keys(questionsData));
+    const sectionCounts = Object.keys(questionsData).map(k => `${k}: ${questionsData[k].length}`);
+    console.log("SUCCESS: Loaded questions counts:", sectionCounts.join(", "));
   } else {
-    console.error("questions.json NOT FOUND at", jsonPath);
+    // Fallback to __dirname if process.cwd() fails (some older Vercel instances)
+    const fallbackPath = path.join(__dirname, 'questions.json');
+    console.warn("WARN: questions.json NOT FOUND at", jsonPath, ". Trying fallback:", fallbackPath);
+    if (fs.existsSync(fallbackPath)) {
+      questionsData = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'));
+      console.log("SUCCESS: Loaded questions from fallback path.");
+    } else {
+      console.error("ERROR: questions.json NOT FOUND at any expected location.");
+    }
   }
 } catch (e) {
-  console.error("Failed to load questions.json", e);
+  console.error("CRITICAL: Failed to load questions.json", e);
 }
 
 // --- ROUTES ---

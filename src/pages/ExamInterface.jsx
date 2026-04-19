@@ -57,9 +57,22 @@ const ExamInterface = ({ isDark, toggleTheme, user, setUser }) => {
   const [flags, setFlags] = useState({}); // { q_id: true }
 
   useEffect(() => {
-    if (!testId) {
-      navigate('/');
-      return;
+    let effectiveTestId = testId;
+    
+    // Recovery logic: if testId is missing (e.g. page refresh), check for recently active session
+    if (!effectiveTestId) {
+       const keys = Object.keys(localStorage);
+       const sessionKey = keys.find(k => k.startsWith('nimcet_session_'));
+       if (sessionKey) {
+         effectiveTestId = sessionKey.replace('nimcet_session_', '');
+         console.log("Recovered session for test:", effectiveTestId);
+       }
+    }
+
+    if (!effectiveTestId) {
+       console.warn("No testId found in state or localStorage. Redirecting home.");
+       navigate('/');
+       return;
     }
     const savedSession = localStorage.getItem(`nimcet_session_${testId}`);
     if (savedSession) {

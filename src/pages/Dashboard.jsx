@@ -127,14 +127,23 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
         body: JSON.stringify({ exam_type: examType || 'nimcet' })
       });
       
-      // Before calling .json(), check if the response is actually JSON
       const contentType = res.headers.get("content-type");
-      if (!res.ok || !contentType || !contentType.includes("application/json")) {
+      if (!res.ok) {
         const text = await res.text();
-        console.error("Server error response:", text);
-        // Show the actual error message to the user for diagnostics
-        alert("Server Error (Diagnostics): " + text.substring(0, 200) + (text.length > 200 ? "..." : ""));
+        console.error("API Error Status:", res.status, "Body:", text);
+        try {
+          const errData = JSON.parse(text);
+          alert(`Test Generation Failed (${res.status}): ${errData.error || 'Unknown error'}`);
+        } catch(e) {
+          alert(`Server Error (${res.status}): ${text.substring(0, 100)}...`);
+        }
         return;
+      }
+
+      if (!contentType || !contentType.includes("application/json")) {
+         console.error("Non-JSON response received:", contentType);
+         alert("Invalid server response. Please try again later.");
+         return;
       }
       
       const data = await res.json();
@@ -143,11 +152,11 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
       } else if (data.error) {
         alert("Generation Error: " + data.error);
       } else {
-        alert("Failed to create test: " + JSON.stringify(data));
+        alert("Failed to create test: ID missing in response.");
       }
     } catch (err) {
-      console.error("Fetch error:", err);
-      alert("Connectivity Error: Could not reach the engine. Check your internet or try again later.");
+      console.error("Fetch error during test generation:", err);
+      alert("Connectivity Error: Could not reach the engine. Details: " + err.message);
     } finally {
       setLoading(false);
     }

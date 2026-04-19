@@ -158,6 +158,7 @@ export default function Signup() {
 
       navigate('/home');
     } catch (signupError) {
+      console.error("Google Signup Error:", signupError);
       setError(formatSignupError(signupError));
     } finally {
       setLoading(false);

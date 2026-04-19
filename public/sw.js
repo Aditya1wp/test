@@ -10,8 +10,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Simple pass-through for now
-  event.respondWith(fetch(event.request).catch(() => {
-    // Optional: Return a fallback offline page
-  }));
+  // Simple pass-through. 
+  // We avoid catching and returning nothing, which causes a Response type error.
+  event.respondWith(fetch(event.request));
 });

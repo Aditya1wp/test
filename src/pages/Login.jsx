@@ -93,6 +93,7 @@ export default function Login() {
       await signInWithPopup(auth, googleProvider);
       navigate('/home');
     } catch (authError) {
+      console.error("Google Login Error:", authError);
       setError(resolveAuthError(authError));
     } finally {
       setLoading(false);
