@@ -47,7 +47,7 @@ function resolveAuthError(error) {
     case 'auth/network-request-failed':
       return 'Network error. Please check your connection.';
     default:
-      return 'Unable to log in right now. Please try again.';
+      return `Technical Error (${error?.code || 'unknown'}): Please check the console for details.`;
   }
 }
 
@@ -80,6 +80,7 @@ export default function Login() {
       }
       navigate('/home');
     } catch (authError) {
+      console.error("Email Login Error:", authError);
       setError(resolveAuthError(authError));
     } finally {
       setLoading(false);
