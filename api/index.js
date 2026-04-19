@@ -173,12 +173,25 @@ app.post('/api/tests/generate', async (req, res) => {
     const result = await dbRun("INSERT INTO test_results (user_id) VALUES (?)", [user.id]);
     const testId = result.lastID;
 
-    const sections = [
-      ["Mathematics", 50],
-      ["Logical Reasoning", 40],
-      ["Computer Awareness", 10],
-      ["General English", 20]
-    ];
+    const { exam_type = 'nimcet' } = req.body;
+    let sections = [];
+    
+    if (exam_type === 'jee') {
+      sections = [["Physics", 30], ["Chemistry", 30], ["Mathematics", 30]];
+    } else if (exam_type === 'neet') {
+      sections = [["Biology", 90], ["Physics", 45], ["Chemistry", 45]];
+    } else if (exam_type === 'upsc') {
+      sections = [["General Studies", 100], ["CSAT", 80]];
+    } else if (exam_type === 'general') {
+      sections = [["Aptitude", 50], ["Reasoning", 50]];
+    } else {
+      sections = [
+        ["Mathematics", 50],
+        ["Logical Reasoning", 40],
+        ["Computer Awareness", 10],
+        ["General English", 20]
+      ];
+    }
 
     await dbRun("BEGIN TRANSACTION"); // Speeds up inserts drastically
 
@@ -412,7 +425,7 @@ app.get('/api/chat/token', (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => console.log(`NIMCET Node Backend running on port ${PORT}`));
 
 export default app;

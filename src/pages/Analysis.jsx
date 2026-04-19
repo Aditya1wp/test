@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, XCircle, Info, Clock, BarChart, Sun, Moon } from 'lucide-react';
 import { apiFetch } from '../lib/api.js';
+
+const EXAM_CONFIG = {
+  nimcet: { name: 'NIMCET', color: 'blue', icon: 'N', fullName: 'NIMCET MOCK' },
+  jee: { name: 'JEE Mains', color: 'indigo', icon: 'J', fullName: 'JEE MOCK' },
+  neet: { name: 'NEET', color: 'rose', icon: 'H', fullName: 'NEET MOCK' },
+  upsc: { name: 'UPSC', color: 'amber', icon: 'U', fullName: 'UPSC MOCK' },
+  general: { name: 'General Competition', color: 'emerald', icon: 'G', fullName: 'GEN COMP MOCK' },
+};
 
 const Analysis = ({ isDark, toggleTheme, user }) => {
   const { testId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const examType = location.state?.examType || 'nimcet';
+  const config = EXAM_CONFIG[examType] || EXAM_CONFIG.nimcet;
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
 
@@ -32,7 +43,7 @@ const Analysis = ({ isDark, toggleTheme, user }) => {
 
   if (loading) return (
     <div className="h-screen flex items-center justify-center bg-panel">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className={`animate-spin rounded-full h-12 w-12 border-b-2 border-${config.color}-600`}></div>
     </div>
   );
 
@@ -42,8 +53,8 @@ const Analysis = ({ isDark, toggleTheme, user }) => {
     <div className="min-h-screen bg-panel transition-colors duration-300">
       <header className="border-b border-main p-4 flex justify-between items-center sticky top-0 bg-panel z-50 shadow-sm">
         <div className="flex items-center space-x-2">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">N</div>
-          <div className="text-xl font-black tracking-tight">NIMCET <span className="text-blue-600">MOCK</span></div>
+          <div className={`w-10 h-10 bg-${config.color}-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg`}>{config.icon || config.name[0]}</div>
+          <div className="text-xl font-black tracking-tight">{config.name} <span className={`text-${config.color}-600`}>MOCK</span></div>
         </div>
         <button 
           onClick={toggleTheme}
@@ -55,14 +66,14 @@ const Analysis = ({ isDark, toggleTheme, user }) => {
 
       <div className="max-w-5xl mx-auto px-4 py-8">
       <button 
-        onClick={() => navigate('/')}
-        className="flex items-center text-blue-600 hover:text-blue-700 font-medium mb-6 transition"
+        onClick={() => navigate(`/dashboard/${examType}`)}
+        className={`flex items-center text-${config.color}-600 hover:text-${config.color}-700 font-medium mb-6 transition`}
       >
         <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
       </button>
 
       <div className="bg-panel rounded-2xl shadow-lg border border-main overflow-hidden mb-8">
-        <div className="bg-blue-600 p-8 text-white">
+        <div className={`bg-${config.color}-600 p-8 text-white`}>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold mb-2">Test Analysis</h1>
@@ -75,27 +86,22 @@ const Analysis = ({ isDark, toggleTheme, user }) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-main border-b border-main">
-          <div className="p-4 text-center">
-            <div className="text-gray-500 dark:text-gray-400 text-[10px] uppercase font-bold mb-1">Mathematics</div>
-            <div className="text-lg font-bold">{data.math_score.toFixed(1)}</div>
-          </div>
-          <div className="p-4 text-center">
-            <div className="text-gray-500 dark:text-gray-400 text-[10px] uppercase font-bold mb-1">Reasoning</div>
-            <div className="text-lg font-bold">{data.reasoning_score.toFixed(1)}</div>
-          </div>
-          <div className="p-4 text-center">
-            <div className="text-gray-500 dark:text-gray-400 text-[10px] uppercase font-bold mb-1">Computer</div>
-            <div className="text-lg font-bold">{data.computer_score.toFixed(1)}</div>
-          </div>
-          <div className="p-4 text-center">
-            <div className="text-gray-500 dark:text-gray-400 text-[10px] uppercase font-bold mb-1">English</div>
-            <div className="text-lg font-bold">{data.english_score.toFixed(1)}</div>
-          </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-main border-b border-main">
+          {['math', 'reasoning', 'computer', 'english', 'physics', 'chemistry', 'biology', 'gs', 'csat', 'aptitude'].map(s => (
+            data[`${s}_score`] !== undefined && (
+              <div key={s} className="p-4 text-center">
+                <div className="text-gray-500 dark:text-gray-400 text-[10px] uppercase font-bold mb-1">{s.replace('_', ' ').toUpperCase()}</div>
+                <div className="text-lg font-bold">{data[`${s}_score`].toFixed(1)}</div>
+              </div>
+            )
+          ))}
           <div className="p-4 text-center">
             <div className="text-gray-500 dark:text-gray-400 text-[10px] uppercase font-bold mb-1">Accuracy</div>
             <div className="text-lg font-bold">
-              {((data.questions.filter(q => q.is_correct).length / data.questions.length) * 100).toFixed(0)}%
+              {data.questions.length > 0 
+                ? `${((data.questions.filter(q => q.is_correct).length / data.questions.length) * 100).toFixed(0)}%`
+                : '0%'
+              }
             </div>
           </div>
         </div>
@@ -166,11 +172,11 @@ const Analysis = ({ isDark, toggleTheme, user }) => {
                   })}
                 </div>
 
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl flex items-start">
-                  <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-1 mr-3 flex-shrink-0" />
+                <div className={`bg-${config.color}-50 dark:bg-${config.color}-900/20 p-4 rounded-xl flex items-start`}>
+                  <Info className={`w-5 h-5 text-${config.color}-600 dark:text-${config.color}-400 mt-1 mr-3 flex-shrink-0`} />
                   <div>
-                    <h4 className="font-bold text-blue-800 dark:text-blue-300 text-sm mb-1 uppercase tracking-wider">Step-by-Step Logic</h4>
-                    <p className="text-blue-900 dark:text-blue-100 text-sm leading-relaxed">{q.explanation}</p>
+                    <h4 className={`font-bold text-${config.color}-800 dark:text-${config.color}-300 text-sm mb-1 uppercase tracking-wider`}>Step-by-Step Logic</h4>
+                    <p className={`text-${config.color}-900 dark:text-${config.color}-100 text-sm leading-relaxed`}>{q.explanation}</p>
                   </div>
                 </div>
               </div>

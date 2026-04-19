@@ -4,17 +4,49 @@ import { Clock, ChevronRight, ChevronLeft, Flag, CheckCircle, Sun, Moon } from '
 import { apiFetch } from '../lib/api.js';
 import ProfileMenu from '../components/ProfileMenu';
 
-const SECTIONS = [
-  { id: 'Mathematics', title: 'Mathematics', duration: 50 * 60 },
-  { id: 'Logical Reasoning', title: 'Analytical Ability & Logical Reasoning', duration: 45 * 60 },
-  { id: 'Computer Awareness', title: 'Computer Awareness', duration: 10 * 60 },
-  { id: 'General English', title: 'General English', duration: 15 * 60 }
-];
+const SECTIONS_CONFIG = {
+  nimcet: [
+    { id: 'Mathematics', title: 'Mathematics', duration: 50 * 60 },
+    { id: 'Logical Reasoning', title: 'Analytical Ability & Logical Reasoning', duration: 45 * 60 },
+    { id: 'Computer Awareness', title: 'Computer Awareness', duration: 10 * 60 },
+    { id: 'General English', title: 'General English', duration: 15 * 60 }
+  ],
+  jee: [
+    { id: 'Physics', title: 'Physics', duration: 60 * 60 },
+    { id: 'Chemistry', title: 'Chemistry', duration: 60 * 60 },
+    { id: 'Mathematics', title: 'Mathematics', duration: 60 * 60 }
+  ],
+  neet: [
+    { id: 'Biology', title: 'Biology', duration: 90 * 60 },
+    { id: 'Physics', title: 'Physics', duration: 45 * 60 },
+    { id: 'Chemistry', title: 'Chemistry', duration: 45 * 60 }
+  ],
+  upsc: [
+    { id: 'General Studies', title: 'General Studies', duration: 120 * 60 },
+    { id: 'CSAT', title: 'CSAT', duration: 120 * 60 }
+  ],
+  general: [
+    { id: 'Aptitude', title: 'Quantitative Aptitude', duration: 60 * 60 },
+    { id: 'Reasoning', title: 'Logical Reasoning', duration: 60 * 60 }
+  ]
+};
+
+const EXAM_CONFIG = {
+  nimcet: { name: 'NIMCET', color: 'blue', fullName: 'NIMCET MOCK' },
+  jee: { name: 'JEE Mains', color: 'indigo', fullName: 'JEE MOCK' },
+  neet: { name: 'NEET', color: 'rose', fullName: 'NEET MOCK' },
+  upsc: { name: 'UPSC', color: 'amber', fullName: 'UPSC MOCK' },
+  general: { name: 'General Competition', color: 'emerald', fullName: 'GEN COMP MOCK' },
+};
 
 const ExamInterface = ({ isDark, toggleTheme, user, setUser }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const testId = location.state?.testId;
+  const examType = location.state?.examType || 'nimcet';
+  
+  const SECTIONS = SECTIONS_CONFIG[examType] || SECTIONS_CONFIG.nimcet;
+  const config = EXAM_CONFIG[examType] || EXAM_CONFIG.nimcet;
 
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState([]);
@@ -69,7 +101,7 @@ const ExamInterface = ({ isDark, toggleTheme, user, setUser }) => {
       });
       const data = await res.json();
       localStorage.removeItem(`nimcet_session_${testId}`);
-      navigate(`/analysis/${testId}`);
+      navigate(`/analysis/${testId}`, { state: { examType } });
     } catch(err) {
       alert("Error submitting: " + err);
     }
@@ -145,9 +177,9 @@ const ExamInterface = ({ isDark, toggleTheme, user, setUser }) => {
     <div className="h-screen flex flex-col bg-panel transition-colors duration-300 overflow-hidden">
       <header className="bg-panel shadow-md border-b border-main px-6 py-4 flex justify-between items-center z-50">
         <div className="flex items-center space-x-4">
-          <div className="bg-blue-600 text-white font-bold px-3 py-1 rounded shadow-sm text-sm">NIMCET MOCK</div>
+          <div className={`bg-${config.color}-600 text-white font-bold px-3 py-1 rounded shadow-sm text-sm uppercase`}>{config.fullName}</div>
           <div className="text-lg font-bold">
-            <span className="opacity-60 font-medium">Section:</span> <span className="text-blue-600 dark:text-blue-400">{section.title}</span>
+            <span className="opacity-60 font-medium">Section:</span> <span className={`text-${config.color}-600 dark:text-${config.color}-400`}>{section.title}</span>
           </div>
         </div>
         
@@ -163,14 +195,14 @@ const ExamInterface = ({ isDark, toggleTheme, user, setUser }) => {
           <div className="text-right flex items-center bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-lg">
             <div className="mr-3 text-right">
               <div className="text-[10px] uppercase tracking-tighter text-gray-500 dark:text-gray-400 font-black leading-none mb-1">Time Left</div>
-              <div className={`text-2xl font-mono font-bold leading-none ${timeLeft < 300 ? 'text-red-500 animate-pulse' : 'text-blue-600 dark:text-blue-400'}`}>
+              <div className={`text-2xl font-mono font-bold leading-none ${timeLeft < 300 ? 'text-red-500 animate-pulse' : `text-${config.color}-600 dark:text-${config.color}-400`}`}>
                 {formatTime(timeLeft)}
               </div>
             </div>
-            <Clock className={`w-6 h-6 ${timeLeft < 300 ? 'text-red-500' : 'text-blue-600'}`} />
+            <Clock className={`w-6 h-6 ${timeLeft < 300 ? 'text-red-500' : `text-${config.color}-600`}`} />
           </div>
           
-          <button onClick={submitTest} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg font-bold shadow-lg transition transform hover:scale-105 active:scale-95">
+          <button onClick={submitTest} className={`bg-${config.color}-600 hover:bg-${config.color}-700 text-white px-8 py-2.5 rounded-lg font-bold shadow-lg transition transform hover:scale-105 active:scale-95`}>
             Submit Test
           </button>
         </div>
@@ -184,15 +216,13 @@ const ExamInterface = ({ isDark, toggleTheme, user, setUser }) => {
             <div className="bg-panel flex-1 rounded-2xl shadow-2xl border border-main p-10 flex flex-col max-w-4xl mx-auto w-full mb-6">
               <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center space-x-3">
-                  <span className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-200 w-10 h-10 flex items-center justify-center rounded-xl font-black text-lg shadow-inner">
+                  <span className={`bg-${config.color}-100 dark:bg-${config.color}-900/50 text-${config.color}-700 dark:text-${config.color}-200 w-10 h-10 flex items-center justify-center rounded-xl font-black text-lg shadow-inner`}>
                     {currentQuestionIndex + 1}
                   </span>
                   <h2 className="text-xl font-black text-gray-900 dark:text-white">Question</h2>
                 </div>
-                <div className="text-xs font-black px-4 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-300 tracking-widest shadow-sm">
-                  {section.id === 'Mathematics' ? '12 MARKS' : 
-                   section.id === 'Logical Reasoning' ? '6 MARKS' : 
-                   section.id === 'Computer Awareness' ? '8 MARKS' : '4 MARKS'}
+                <div className={`text-xs font-black px-4 py-2 bg-${config.color}-50 dark:bg-${config.color}-900/30 rounded-full text-${config.color}-600 dark:text-${config.color}-300 tracking-widest shadow-sm`}>
+                  {section.id.toUpperCase()}
                 </div>
               </div>
               
@@ -204,13 +234,13 @@ const ExamInterface = ({ isDark, toggleTheme, user, setUser }) => {
                 {question.options.map((opt, i) => {
                   const isChecked = currentAnsLetter === opt.split('.')[0];
                   return (
-                    <label key={i} className={`flex items-center p-4 border rounded-lg cursor-pointer transition ${isChecked ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300' : 'hover:bg-blue-50 dark:hover:bg-blue-900/10 border-main'}`}>
+                    <label key={i} className={`flex items-center p-4 border rounded-lg cursor-pointer transition ${isChecked ? `bg-${config.color}-50 dark:bg-${config.color}-900/20 border-${config.color}-300` : `hover:bg-${config.color}-50 dark:hover:bg-${config.color}-900/10 border-main`}`}>
                       <input 
                         type="radio" 
                         name={`answer-${question.id}`} 
                         checked={isChecked}
                         onChange={() => handleOptionSelect(opt)}
-                        className="h-5 w-5 text-blue-600 border-gray-300 focus:ring-blue-500" 
+                        className={`h-5 w-5 text-${config.color}-600 border-gray-300 focus:ring-${config.color}-500`} 
                       />
                       <span className="ml-3 text-lg">{opt}</span>
                     </label>
@@ -241,7 +271,7 @@ const ExamInterface = ({ isDark, toggleTheme, user, setUser }) => {
               <button 
                 onClick={nextQuestion}
                 disabled={currentQuestionIndex >= sectionQuestions.length - 1}
-                className="flex items-center px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium shadow-sm transition disabled:opacity-50"
+                className={`flex items-center px-5 py-2 bg-${config.color}-600 hover:bg-${config.color}-700 text-white rounded font-medium shadow-sm transition disabled:opacity-50`}
               >
                 Save & Next <ChevronRight className="w-5 h-5 ml-1" />
               </button>
@@ -257,7 +287,7 @@ const ExamInterface = ({ isDark, toggleTheme, user, setUser }) => {
               <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-green-500 mr-2 shadow-sm"></div> Answered</div>
               <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-orange-400 mr-2 shadow-sm"></div> Tagged</div>
               <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-panel border-2 border-main mr-2"></div> Not Visited</div>
-              <div className="flex items-center"><div className="w-3 h-3 rounded-lg ring-2 ring-blue-500 bg-panel mr-2"></div> Current</div>
+              <div className="flex items-center"><div className={`w-3 h-3 rounded-lg ring-2 ring-${config.color}-500 bg-panel mr-2`}></div> Current</div>
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
@@ -274,7 +304,7 @@ const ExamInterface = ({ isDark, toggleTheme, user, setUser }) => {
                   <button 
                     key={i} 
                     onClick={() => setCurrentQuestionIndex(i)}
-                    className={`w-12 h-12 rounded-xl text-sm font-black transition-all duration-200 ${badgeClass} ${isCurrent ? 'ring-4 ring-blue-500/50 border-blue-500 scale-110 z-10' : 'hover:border-blue-400'}`}
+                    className={`w-12 h-12 rounded-xl text-sm font-black transition-all duration-200 ${badgeClass} ${isCurrent ? `ring-4 ring-${config.color}-500/50 border-${config.color}-500 scale-110 z-10` : `hover:border-${config.color}-400`}`}
                   >
                     {i + 1}
                   </button>

@@ -9,6 +9,7 @@ import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import ProfileSetup from "@/pages/ProfileSetup";
 import VerifyEmail from "@/pages/VerifyEmail";
+import Selection from "@/pages/Selection";
 import InstallPrompt from "@/components/InstallPrompt";
 import { auth } from "@/lib/firebase.js";
 
@@ -103,6 +104,16 @@ function App() {
             {/* Protected App Routes */}
             <Route
               path="/home"
+              element={
+                user ? (
+                  <Selection />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+            <Route
+              path="/dashboard/:examType"
               element={
                 user ? (
                   <Dashboard

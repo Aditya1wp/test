@@ -9,29 +9,11 @@ echo "-----------------------------------------------"
 echo "🔥 NIMCET Mock Engine - Starting Services... 🔥"
 echo "-----------------------------------------------"
 
-# 1. Start the Backend (FastAPI)
+# 1. Start the Backend (Node.js)
 echo "🚀 Starting Backend (Server) on http://127.0.0.1:8000..."
 cd api
-
-# Try to find a valid virtual environment
-VENV_PATH=""
-if [ -f "venv/Scripts/activate" ]; then
-    VENV_PATH="venv/Scripts/activate"
-elif [ -f "../../.venv/Scripts/activate" ]; then
-    VENV_PATH="../../.venv/Scripts/activate"
-elif [ -f "../.venv/Scripts/activate" ]; then
-    VENV_PATH="../.venv/Scripts/activate"
-fi
-
-if [ -n "$VENV_PATH" ]; then
-    echo "📦 Activating virtual environment: $VENV_PATH"
-    source "$VENV_PATH"
-else
-    echo "⚠️ No virtual environment found. Attempting to run with system python..."
-fi
-
-# Run uvicorn in background
-uvicorn main:app --port 8000 --reload &
+# Run node index.js in background
+node index.js &
 cd ..
 
 # 2. Start the Frontend (Vite)
