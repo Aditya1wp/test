@@ -214,7 +214,6 @@ const Dashboard = ({ isDark, toggleTheme, user, setUser }) => {
     <div className="min-h-screen bg-panel transition-colors duration-300">
       <header className="max-w-7xl mx-auto mt-4 sm:mt-6 px-6 py-4 border border-main rounded-2xl sm:rounded-3xl flex justify-between items-center sticky top-4 bg-panel/80 backdrop-blur-xl z-[60] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none dark:bg-panel dark:mt-0 dark:rounded-none dark:max-w-none dark:px-4">
         <div className="flex items-center space-x-2">
-          <div className={`w-10 h-10 bg-${config.color}-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg`}>{config.icon}</div>
           <div className="text-xl font-black tracking-tight">{config.name} <span className={`text-${config.color}-600`}>MOCK</span></div>
         </div>
         <div className="flex items-center space-x-3">

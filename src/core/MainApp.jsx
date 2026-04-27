@@ -12,6 +12,7 @@ import VerifyEmail from "@/pages/VerifyEmail";
 import Selection from "@/pages/Selection";
 import InstallPrompt from "@/components/InstallPrompt";
 import { auth } from "@/lib/firebase.js";
+import { MathJaxContext } from "better-react-mathjax";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -70,6 +71,23 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+  const mathjaxConfig = {
+    loader: { load: ["input/tex", "input/asciimath", "output/chtml"] },
+    tex: {
+      inlineMath: [
+        ["$", "$"],
+        ["\\(", "\\)"]
+      ],
+      displayMath: [
+        ["$$", "$$"],
+        ["\\[", "\\]"]
+      ]
+    },
+    asciimath: {
+      delimiters: [["`", "`"]]
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--app-bg)] flex items-center justify-center">
@@ -79,97 +97,99 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-[var(--app-bg)] text-main transition-colors duration-300 font-sans">
-        <ErrorBoundary>
-          <Routes>
-            {/* Auth Routes */}
-            <Route
-              path="/login"
-              element={user ? <Navigate to="/home" replace /> : <Login />}
-            />
-            <Route
-              path="/signup"
-              element={user ? <Navigate to="/home" replace /> : <Signup />}
-            />
-            <Route
-              path="/verify-email"
-              element={<VerifyEmail />}
-            />
-            <Route
-              path="/profile-setup"
-              element={user ? <ProfileSetup /> : <Navigate to="/login" />}
-            />
+    <MathJaxContext config={mathjaxConfig}>
+      <BrowserRouter>
+        <div className="min-h-screen bg-[var(--app-bg)] text-main transition-colors duration-300 font-sans">
+          <ErrorBoundary>
+            <Routes>
+              {/* Auth Routes */}
+              <Route
+                path="/login"
+                element={user ? <Navigate to="/home" replace /> : <Login />}
+              />
+              <Route
+                path="/signup"
+                element={user ? <Navigate to="/home" replace /> : <Signup />}
+              />
+              <Route
+                path="/verify-email"
+                element={<VerifyEmail />}
+              />
+              <Route
+                path="/profile-setup"
+                element={user ? <ProfileSetup /> : <Navigate to="/login" />}
+              />
 
-            {/* Protected App Routes */}
-            <Route
-              path="/home"
-              element={
-                user ? (
-                  <Selection />
-                ) : (
-                  <Navigate to="/login" />
-                )
-              }
-            />
-            <Route
-              path="/dashboard/:examType"
-              element={
-                user ? (
-                  <Dashboard
-                    isDark={isDark}
-                    toggleTheme={toggleTheme}
-                    user={user}
-                    setUser={setUser}
-                  />
-                ) : (
-                  <Navigate to="/login" />
-                )
-              }
-            />
-            <Route
-              path="/test"
-              element={
-                user ? (
-                  <ExamInterface
-                    isDark={isDark}
-                    toggleTheme={toggleTheme}
-                    user={user}
-                    setUser={setUser}
-                  />
-                ) : (
-                  <Navigate to="/login" />
-                )
-              }
-            />
-            <Route
-              path="/analysis/:testId"
-              element={
-                user ? (
-                  <Analysis
-                    isDark={isDark}
-                    toggleTheme={toggleTheme}
-                    user={user}
-                  />
-                ) : (
-                  <Navigate to="/login" />
-                )
-              }
-            />
+              {/* Protected App Routes */}
+              <Route
+                path="/home"
+                element={
+                  user ? (
+                    <Selection />
+                  ) : (
+                    <Navigate to="/login" />
+                  )
+                }
+              />
+              <Route
+                path="/dashboard/:examType"
+                element={
+                  user ? (
+                    <Dashboard
+                      isDark={isDark}
+                      toggleTheme={toggleTheme}
+                      user={user}
+                      setUser={setUser}
+                    />
+                  ) : (
+                    <Navigate to="/login" />
+                  )
+                }
+              />
+              <Route
+                path="/test"
+                element={
+                  user ? (
+                    <ExamInterface
+                      isDark={isDark}
+                      toggleTheme={toggleTheme}
+                      user={user}
+                      setUser={setUser}
+                    />
+                  ) : (
+                    <Navigate to="/login" />
+                  )
+                }
+              />
+              <Route
+                path="/analysis/:testId"
+                element={
+                  user ? (
+                    <Analysis
+                      isDark={isDark}
+                      toggleTheme={toggleTheme}
+                      user={user}
+                    />
+                  ) : (
+                    <Navigate to="/login" />
+                  )
+                }
+              />
 
-            {/* Redirect root to home or login */}
-            <Route
-              path="/"
-              element={<Navigate to={user ? "/home" : "/login"} replace />}
-            />
+              {/* Redirect root to home or login */}
+              <Route
+                path="/"
+                element={<Navigate to={user ? "/home" : "/login"} replace />}
+              />
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </ErrorBoundary>
-        <InstallPrompt />
-      </div>
-    </BrowserRouter>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </ErrorBoundary>
+          <InstallPrompt />
+        </div>
+      </BrowserRouter>
+    </MathJaxContext>
   );
 }
 

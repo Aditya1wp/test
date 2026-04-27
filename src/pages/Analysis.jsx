@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, XCircle, Info, Clock, BarChart, Sun, Moon } from 'lucide-react';
 import { apiFetch } from '../lib/api.js';
+import { MathJax } from "better-react-mathjax";
 
 const EXAM_CONFIG = {
   nimcet: { name: 'NIMCET', color: 'blue', icon: 'N', fullName: 'NIMCET MOCK' },
@@ -41,6 +42,15 @@ const Analysis = ({ isDark, toggleTheme, user }) => {
     fetchAnalysis();
   }, [testId]);
 
+  const autoWrapMath = (text) => {
+    if (!text) return text;
+    // Improved regex to find math expressions but NOT swallowing whole sentences
+    return text.replace(/(\b[a-zA-Z0-9\.\^√\(\)\/]+(?:\s*[\+\-\*\/=]\s*[a-zA-Z0-9\.\^√\(\)\/]+)+\b|[\w\d]+\^[\w\d]+|√[\w\d]+|\b(?:sin|cos|tan|log|log\d+)\b(?:\s*\(.*?\))?)/g, (match) => {
+      if (match.trim().length < 2) return match;
+      return ` \`${match.trim()}\` `;
+    });
+  };
+
   if (loading) return (
     <div className="h-screen flex items-center justify-center bg-panel">
       <div className={`animate-spin rounded-full h-12 w-12 border-b-2 border-${config.color}-600`}></div>
@@ -53,7 +63,6 @@ const Analysis = ({ isDark, toggleTheme, user }) => {
     <div className="min-h-screen bg-panel transition-colors duration-300">
       <header className="border-b border-main p-4 flex justify-between items-center sticky top-0 bg-panel z-50 shadow-sm">
         <div className="flex items-center space-x-2">
-          <div className={`w-10 h-10 bg-${config.color}-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg`}>{config.icon || config.name[0]}</div>
           <div className="text-xl font-black tracking-tight">{config.name} <span className={`text-${config.color}-600`}>MOCK</span></div>
         </div>
         <button 
@@ -143,7 +152,7 @@ const Analysis = ({ isDark, toggleTheme, user }) => {
                 </div>
 
                 <div className="text-lg font-medium mb-6 leading-relaxed">
-                  {q.content}
+                  <MathJax>{autoWrapMath(q.content)}</MathJax>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
@@ -165,7 +174,9 @@ const Analysis = ({ isDark, toggleTheme, user }) => {
                         }`}>
                           {key}
                         </div>
-                        <span className="flex-1">{value}</span>
+                        <span className="flex-1">
+                          <MathJax inline>{autoWrapMath(value)}</MathJax>
+                        </span>
                         {isCorrectOption && <CheckCircle2 className="w-5 h-5 text-green-500 ml-2" />}
                       </div>
                     );
@@ -176,7 +187,9 @@ const Analysis = ({ isDark, toggleTheme, user }) => {
                   <Info className={`w-5 h-5 text-${config.color}-600 dark:text-${config.color}-400 mt-1 mr-3 flex-shrink-0`} />
                   <div>
                     <h4 className={`font-bold text-${config.color}-800 dark:text-${config.color}-300 text-sm mb-1 uppercase tracking-wider`}>Step-by-Step Logic</h4>
-                    <p className={`text-${config.color}-900 dark:text-${config.color}-100 text-sm leading-relaxed`}>{q.explanation}</p>
+                    <p className={`text-${config.color}-900 dark:text-${config.color}-100 text-sm leading-relaxed`}>
+                      <MathJax>{autoWrapMath(q.explanation)}</MathJax>
+                    </p>
                   </div>
                 </div>
               </div>

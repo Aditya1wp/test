@@ -70,7 +70,7 @@ export default function ProfileSetup() {
           gender: data.gender || 'Prefer not to say',
         });
         setInitialUsername(data.username || storedUsername); 
-        setProfilePreview(data.profile_pic_url || '');
+        setProfilePreview(data.profile_pic_url || currentUser.photoURL || '');
       } catch (loadError) {
         if (active) {
           setError('Could not load your profile details.');
